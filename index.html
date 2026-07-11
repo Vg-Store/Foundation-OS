@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Foundation OS</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#17181c">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#17181c; --surface:#1f2127; --surface2:#262933; --border:#2f3138;
+    --ink:#ede9df; --ink-dim:#8b8d94; --amber:#c17a4d; --amber-dim:#8a5c37;
+    --moss:#7a9b76; --locked:#3a3d47; --danger:#a85b52;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; padding-bottom:84px; min-height:100vh;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  header{padding:22px 20px 16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--bg); z-index:10;}
+  header .top-row{display:flex; justify-content:space-between; align-items:baseline;}
+  header h1{font-family:'Oswald',sans-serif; font-weight:700; font-size:20px; letter-spacing:0.04em; text-transform:uppercase;}
+  header .session-tag{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--amber); background:rgba(193,122,77,0.12); padding:4px 9px; border-radius:20px; border:1px solid rgba(193,122,77,0.35);}
+  header .subline{margin-top:6px; font-size:13px; color:var(--ink-dim);}
+  main{padding:18px 16px 8px; max-width:560px; margin:0 auto;}
+  .day-banner{display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; margin-bottom:18px;}
+  .day-banner .label{font-size:12px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.08em;}
+  .day-banner .val{font-family:'Oswald'; font-size:22px; font-weight:600; margin-top:2px;}
+  .streak-pill{font-family:'JetBrains Mono'; font-size:13px; color:var(--moss); text-align:right;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:14px;}
+  .card-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px;}
+  .pillar-tag{font-size:11px; color:var(--amber); text-transform:uppercase; letter-spacing:0.1em; font-weight:600;}
+  .exercise-name{font-family:'Oswald'; font-size:19px; font-weight:600; margin-top:3px;}
+  .stage-dots{display:flex; gap:5px; margin-top:6px;}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--locked);}
+  .dot.filled{background:var(--amber);}
+  .dot.current{background:var(--ink); outline:2px solid var(--amber); outline-offset:1px;}
+  .figure-box{width:92px; height:76px; flex-shrink:0; background:var(--surface2); border-radius:10px; padding:6px;}
+  .figure-box svg{width:100%; height:100%;}
+  .cue{font-size:13px; color:var(--ink-dim); line-height:1.5; margin-bottom:10px;}
+  .mistakes{list-style:none; margin-bottom:14px;}
+  .mistakes li{font-size:12px; color:var(--ink-dim); padding-left:14px; position:relative; line-height:1.5; margin-bottom:3px;}
+  .mistakes li:before{content:"·"; position:absolute; left:2px; color:var(--danger);}
+  .target-row{font-family:'JetBrains Mono'; font-size:13px; color:var(--ink); background:var(--surface2); display:inline-block; padding:5px 10px; border-radius:8px; margin-bottom:14px;}
+  .sets-row{display:flex; gap:8px; margin-bottom:4px;}
+  .set-input{flex:1;}
+  .set-input label{display:block; font-size:10px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:5px;}
+  .set-input input{width:100%; background:var(--bg); border:1px solid var(--border); color:var(--ink); font-family:'JetBrains Mono'; font-size:16px; text-align:center; padding:10px 4px; border-radius:8px;}
+  .set-input input:focus{outline:none; border-color:var(--amber);}
+  .set-input input.invalid{border-color:var(--danger);}
+  .field-error{font-size:11px; color:var(--danger); margin-bottom:10px;}
+  .warmup-item{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);}
+  .warmup-item:last-child{border-bottom:none;}
+  .warmup-item input[type=checkbox]{width:20px; height:20px; accent-color:var(--amber); flex-shrink:0;}
+  .warmup-item .wtext{flex:1;}
+  .warmup-item .wname{font-size:14px; font-weight:600;}
+  .warmup-item .wcue{font-size:12px; color:var(--ink-dim); margin-top:2px;}
+  .complete-btn{width:100%; background:var(--amber); color:#1a1208; border:none; border-radius:14px; padding:16px; font-family:'Oswald'; font-size:16px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; margin-top:6px; cursor:pointer;}
+  .complete-btn:active{transform:scale(0.985);}
+  .complete-btn:disabled{background:var(--locked); color:var(--ink-dim); cursor:not-allowed;}
+  nav{position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; padding:8px 10px calc(8px + env(safe-area-inset-bottom));}
+  nav button{flex:1; background:none; border:none; color:var(--ink-dim); font-family:'Inter'; font-size:11px; display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px; cursor:pointer;}
+  nav button svg{width:20px; height:20px; stroke:var(--ink-dim); fill:none; stroke-width:2;}
+  nav button.active{color:var(--amber);}
+  nav button.active svg{stroke:var(--amber);}
+  .view{display:none;}
+  .view.active{display:block;}
+  .ladder-card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:14px;}
+  .ladder-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px;}
+  .ladder-head .pname{font-family:'Oswald'; font-size:17px; font-weight:600; text-transform:uppercase;}
+  .ladder-head .peta{font-family:'JetBrains Mono'; font-size:12px; color:var(--ink-dim);}
+  .rungs{display:flex; gap:8px;}
+  .rung{flex:1; text-align:center;}
+  .rung-bar{height:10px; border-radius:6px; background:var(--locked); margin-bottom:8px; position:relative; overflow:hidden;}
+  .rung-bar.done{background:var(--amber);}
+  .rung-bar.active{background:var(--surface2); border:1px solid var(--amber);}
+  .rung-bar.active .fill{position:absolute; left:0; top:0; bottom:0; background:var(--amber); border-radius:6px;}
+  .rung-label{font-size:11px; color:var(--ink-dim);}
+  .rung-label.done{color:var(--moss);}
+  .rung-label.active{color:var(--amber); font-weight:600;}
+  .stat-row{display:flex; gap:10px; margin-bottom:16px;}
+  .stat-box{flex:1; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center;}
+  .stat-box .num{font-family:'Oswald'; font-size:26px; font-weight:700; color:var(--amber);}
+  .stat-box .lbl{font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; margin-top:2px;}
+  .pr-card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px 18px; margin-bottom:14px;}
+  .pr-title{font-family:'Oswald'; font-size:14px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-dim); margin-bottom:10px;}
+  .pr-row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px;}
+  .pr-row:last-child{border-bottom:none;}
+  .pr-row .prn{color:var(--ink-dim);}
+  .pr-row .prv{font-family:'JetBrains Mono'; color:var(--amber); font-weight:600;}
+  .hist-entry{display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--border); font-size:13px;}
+  .hist-entry:last-child{border-bottom:none;}
+  .hist-entry .hd{color:var(--ink-dim);}
+  .hist-entry .hb{font-family:'JetBrains Mono'; color:var(--ink);}
+  .undo-btn{display:block; width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--ink); font-family:'Oswald'; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; padding:12px; border-radius:10px; cursor:pointer; margin-bottom:14px; text-align:center;}
+  .info-block{font-size:14px; line-height:1.65; color:var(--ink-dim); margin-bottom:16px;}
+  .info-block b{color:var(--ink);}
+  .deload-badge{display:inline-block; font-size:11px; color:#e8b989; background:rgba(193,122,77,0.16); border:1px solid rgba(193,122,77,0.4); padding:4px 9px; border-radius:20px; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;}
+  .rpe-row{display:flex; gap:6px; margin-top:10px; margin-bottom:2px;}
+  .rpe-btn{flex:1; background:var(--surface2); border:1px solid var(--border); color:var(--ink-dim); font-size:11px; padding:8px 4px; border-radius:8px; cursor:pointer; text-align:center;}
+  .rpe-btn.selected{background:var(--amber); border-color:var(--amber); color:#1a1208; font-weight:600;}
+  .rpe-label{font-size:10px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; margin-top:12px; margin-bottom:4px;}
+  .rest-timer{margin-top:12px; display:flex; align-items:center; gap:10px;}
+  .rest-btn{background:var(--surface2); border:1px solid var(--border); color:var(--ink); font-family:'JetBrains Mono'; font-size:13px; padding:8px 14px; border-radius:8px; cursor:pointer;}
+  .rest-btn.running{border-color:var(--amber); color:var(--amber);}
+  .rest-display{font-family:'JetBrains Mono'; font-size:14px; color:var(--amber); min-width:40px;}
+  .notes-card textarea{width:100%; background:var(--bg); border:1px solid var(--border); color:var(--ink); font-family:'Inter'; font-size:14px; padding:12px; border-radius:10px; resize:vertical; min-height:60px;}
+  .notes-card textarea:focus{outline:none; border-color:var(--amber);}
+  .notes-card label{display:block; font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;}
+  .cooldown-line{font-size:12px; color:var(--ink-dim); text-align:center; margin-top:10px; margin-bottom:6px;}
+  .backup-row{display:flex; gap:10px; margin-bottom:8px;}
+  .backup-btn{flex:1; background:var(--surface2); border:1px solid var(--border); color:var(--ink); font-family:'Oswald'; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; padding:12px; border-radius:10px; cursor:pointer; text-align:center;}
+  .backup-btn:active{transform:scale(0.98);}
+  .reset-link{display:block; text-align:center; font-size:12px; color:var(--danger); margin-top:24px; text-decoration:underline; cursor:pointer;}
+  .toast{position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-120%); background:var(--amber); color:#1a1208; font-family:'Oswald'; font-weight:600; font-size:14px; padding:12px 20px; border-radius:12px; z-index:100; transition:transform 0.35s ease; text-transform:uppercase; letter-spacing:0.03em; box-shadow:0 8px 24px rgba(0,0,0,0.4); max-width:90%; text-align:center;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .empty{text-align:center; padding:40px 20px; color:var(--ink-dim); font-size:14px;}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<header>
+  <div class="top-row">
+    <h1>Foundation OS</h1>
+    <span class="session-tag mono" id="sessionTag">Session 1</span>
+  </div>
+  <div class="subline" id="headerSub">10–14 week bodyweight foundation · no equipment</div>
+</header>
+
+<main>
+  <div class="view active" id="view-today"></div>
+  <div class="view" id="view-progress"></div>
+  <div class="view" id="view-history"></div>
+  <div class="view" id="view-info">
+    <div class="card">
+      <div class="exercise-name" style="margin-bottom:10px;">How this works</div>
+      <div class="info-block"><b>Session-based, not date-based.</b> Rest days are your choice. Sessions alternate Day A (Push, Legs, Core) and Day B (Pull, Core, Warmup).</div>
+      <div class="info-block"><b>Auto-progression.</b> Each exercise starts near your current ability and adds a small increment every 2 successful sessions, building up to a ceiling — then switches to the next, harder variation. No manual decisions.</div>
+      <div class="info-block"><b>Deload.</b> 3 full misses in a row on a stage automatically triggers one reduced-load session (target cut ~20%) to shed fatigue, then resumes normal progression immediately after — pass or fail.</div>
+      <div class="info-block" id="programVersionLine"></div>
+    </div>
+    <div class="card">
+      <div class="exercise-name" style="margin-bottom:10px;">Backup</div>
+      <div class="info-block">Your data lives only in this browser. Export it after milestones so a browser reset doesn't erase your progress.</div>
+      <div class="backup-row">
+        <div class="backup-btn" id="exportBtn">Export JSON</div>
+        <div class="backup-btn" id="importBtn">Import JSON</div>
+      </div>
+      <input type="file" id="importFile" accept="application/json" style="display:none;">
+    </div>
+    <div class="reset-link" id="resetBtn">Reset all progress</div>
+  </div>
+</main>
+
+<nav>
+  <button class="nav-btn active" data-view="today"><svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>Today</button>
+  <button class="nav-btn" data-view="progress"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Progress</button>
+  <button class="nav-btn" data-view="history"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>History</button>
+  <button class="nav-btn" data-view="info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>Info</button>
+</nav>
+
+<script>
+/* =====================================================================
+   SECTION: DATA — program definitions, versioning constants
+   ===================================================================== */
+const SCHEMA_VERSION = 2;
+const PROGRAM_VERSION = "Foundation v1.0";
+
+const PROGRAM = {
+  push: { name:"Push", stages:[
+    {name:"Push-up", sets:3, start:8, increment:1, ceiling:15, unit:"reps",
+     cue:"Hands under shoulders, elbows ~45° from body, straight line head to heel, chest to floor.",
+     mistakes:["Elbows flaring straight out past 45°","Hips sagging or piking up","Not touching chest to the floor"],
+     svg:"pushup"},
+    {name:"Diamond Push-up", sets:3, start:6, increment:1, ceiling:12, unit:"reps",
+     cue:"Hands together under chest forming a diamond. Elbows track back — triceps do the work.",
+     mistakes:["Hands drifting apart over reps","Elbows flaring out instead of back","Cutting range of motion short"],
+     svg:"diamond"},
+    {name:"Pike Push-up", sets:3, start:5, increment:1, ceiling:10, unit:"reps",
+     cue:"Hips high, body forms an inverted V. Lower head toward the floor between your hands.",
+     mistakes:["Hips creeping forward, losing the pike angle","Not lowering the head far enough","Bouncing instead of controlled tempo"],
+     svg:"pike"}
+  ]},
+  pull: { name:"Pull", stages:[
+    {name:"Pull-up", sets:3, start:2, increment:1, ceiling:8, unit:"reps",
+     cue:"Overhand grip, shoulder-width. Pull until chin clears the bar. Full hang at the bottom.",
+     mistakes:["Kipping or swinging for momentum","Not reaching full hang between reps","Stopping short of chin over the bar"],
+     svg:"pullup"},
+    {name:"Chin-up", sets:3, start:3, increment:1, ceiling:8, unit:"reps",
+     cue:"Underhand grip, shoulder-width. Pull chest toward the bar, lower with control.",
+     mistakes:["Rushing the descent instead of controlling it","Grip too wide for an underhand hold","Shoulders shrugged up near the ears"],
+     svg:"chinup"},
+    {name:"Wide Pull-up", sets:3, start:4, increment:1, ceiling:10, unit:"reps",
+     cue:"Grip wider than shoulders. Pull to upper chest, take 3 seconds on the way down.",
+     mistakes:["Grip so wide it shortens range of motion","Rushing the 3-second negative","Neck craning forward to reach the bar"],
+     svg:"widepull"}
+  ]},
+  legs: { name:"Legs", stages:[
+    {name:"Squat", sets:3, start:12, increment:2, ceiling:25, unit:"reps",
+     cue:"Feet shoulder-width, hips back and down, chest tall. Thighs to parallel or below.",
+     mistakes:["Knees caving inward","Heels lifting off the floor","Stopping above parallel depth"],
+     svg:"squat"},
+    {name:"Split Squat", sets:3, start:8, increment:1, ceiling:15, unit:"repsPerLeg",
+     cue:"Long staggered stance. Back knee drops straight down, front knee stays over the ankle.",
+     mistakes:["Front knee drifting past the toes","Stance too short, limiting depth","Torso leaning too far forward"],
+     svg:"splitsquat"},
+    {name:"Bulgarian Split Squat", sets:3, start:6, increment:1, ceiling:12, unit:"repsPerLeg",
+     cue:"Rear foot up on a chair behind you. Drop straight down on the front leg.",
+     mistakes:["Pushing off the rear foot for help","Front knee caving inward","Not descending to full depth"],
+     svg:"bulgarian"}
+  ]},
+  core: { name:"Core", isTime:true, stages:[
+    {name:"Plank", sets:3, start:20, increment:5, ceiling:60, unit:"seconds",
+     cue:"Forearms down, straight line head to heel, ribs pulled down. Don't let hips sag.",
+     mistakes:["Hips sagging toward the floor","Hips piking up too high","Holding breath instead of breathing steadily"],
+     svg:"plank"},
+    {name:"Hollow Hold", sets:3, start:10, increment:5, ceiling:30, unit:"seconds",
+     cue:"Lower back flat on the floor, arms and legs lifted — a shallow banana shape.",
+     mistakes:["Lower back arching off the floor","Legs dropping too low to maintain the shape","Holding breath through the hold"],
+     svg:"hollow"},
+    {name:"L-sit Tuck", sets:3, start:5, increment:2, ceiling:15, unit:"seconds",
+     cue:"Hands on the floor or two chairs. Tuck knees to chest, lift hips clear of the ground.",
+     mistakes:["Shoulders creeping up instead of pressed down","Hips not fully clearing the ground","Rounding the upper back"],
+     svg:"lsit"}
+  ]}
+};
+
+const WARMUP = [
+  {name:"Scapular Push-up", reps:"3 × 10", cue:"Plank position, arms straight. Let your chest sink between your shoulder blades, then push them apart.", svg:"scappush"},
+  {name:"Bar Shoulder Shrug", reps:"3 × 10", cue:"Hang from the bar, arms straight. Shrug shoulders up and down without bending the elbows.", svg:"barshrug"}
+];
+
+const DAY_PILLARS = { A:["push","legs","core"], B:["pull","core"] };
+const RPE_OPTIONS = ["easy","normal","hard"];
+const FAIL_CAUSES = ["strength","technique","recovery","pain"];
+const VALIDATION_MAX = { reps:100, repsPerLeg:100, seconds:600 };
+const DELOAD_THRESHOLD = 3;
+
+/* ---- stick figures ---- */
+const STROKE = 'stroke="#c17a4d" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+const SVGS = {
+pushup:`<circle cx="132" cy="30" r="10" ${STROKE}/><path d="M122 34 L40 60 M40 60 L20 90 M40 60 L60 92 M75 55 L55 90 M95 48 L95 92" ${STROKE}/>`,
+diamond:`<circle cx="132" cy="30" r="10" ${STROKE}/><path d="M122 34 L40 60 M40 60 L20 90 M40 60 L60 92 M72 52 L82 78 L92 52 Z" ${STROKE}/>`,
+pike:`<circle cx="115" cy="70" r="10" ${STROKE}/><path d="M108 76 L60 50 L20 90 M60 50 L95 90 M60 50 L58 20" ${STROKE}/>`,
+pullup:`<circle cx="60" cy="18" r="10" ${STROKE}/><path d="M10 10 H110" ${STROKE}/><path d="M60 28 V60 M60 32 L30 12 M60 32 L90 12 M60 60 L40 95 M60 60 L80 95" ${STROKE}/>`,
+chinup:`<circle cx="60" cy="18" r="10" ${STROKE}/><path d="M10 10 H110" ${STROKE}/><path d="M60 28 V58 M60 32 L35 14 M60 32 L85 14 M60 58 L42 95 M60 58 L78 95" ${STROKE}/><path d="M40 13 a5 5 0 0 1 40 0" ${STROKE}/>`,
+widepull:`<circle cx="60" cy="18" r="10" ${STROKE}/><path d="M5 10 H115" ${STROKE}/><path d="M60 28 V60 M60 30 L15 12 M60 30 L105 12 M60 60 L40 95 M60 60 L80 95" ${STROKE}/>`,
+squat:`<circle cx="60" cy="16" r="10" ${STROKE}/><path d="M60 26 V56 M60 34 L35 50 M60 34 L85 50 M60 56 L38 62 L38 92 M60 56 L82 62 L82 92" ${STROKE}/>`,
+splitsquat:`<circle cx="65" cy="14" r="10" ${STROKE}/><path d="M65 24 V54 M65 32 L45 44 M65 32 L88 44 M65 54 L50 60 L28 90 M65 54 L85 68 L100 90" ${STROKE}/>`,
+bulgarian:`<circle cx="55" cy="14" r="10" ${STROKE}/><path d="M55 24 V54 M55 32 L35 44 M55 32 L78 44 M55 54 L40 62 L20 92 M55 54 L78 66 L105 62" ${STROKE}/><rect x="98" y="55" width="20" height="10" ${STROKE}/>`,
+plank:`<circle cx="20" cy="65" r="10" ${STROKE}/><path d="M28 68 L100 58 M35 72 L20 92 M55 65 L48 92 M100 58 L118 50 M100 58 L112 76" ${STROKE}/>`,
+hollow:`<circle cx="30" cy="80" r="10" ${STROKE}/><path d="M38 78 Q70 60 100 78" ${STROKE}/><path d="M38 78 Q15 58 8 40 M100 78 Q120 58 128 40" ${STROKE}/>`,
+lsit:`<circle cx="35" cy="30" r="10" ${STROKE}/><path d="M35 40 V65 M35 45 L15 78 M35 45 L55 78 M35 65 L60 68 M60 68 L110 68" ${STROKE}/>`,
+scappush:`<circle cx="20" cy="60" r="10" ${STROKE}/><path d="M28 62 L100 55 M35 66 L20 90 M55 60 L48 90 M100 55 L118 48 M100 55 L112 72" ${STROKE}/><path d="M55 40 L45 30 M55 40 L65 30" ${STROKE}/>`,
+barshrug:`<circle cx="60" cy="20" r="10" ${STROKE}/><path d="M10 12 H110" ${STROKE}/><path d="M60 30 V62 M60 34 L32 14 M60 34 L88 14 M60 62 L42 96 M60 62 L78 96" ${STROKE}/><path d="M45 26 L45 18 M75 26 L75 18" ${STROKE}/>`
+};
+function figure(key){ return `<svg viewBox="0 0 140 100">${SVGS[key]||''}</svg>`; }
+
+/* =====================================================================
+   SECTION: STATE & PERSISTENCE
+   ===================================================================== */
+const STORE_KEY = 'foundationos_state_v1';
+
+function defaultState(){
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    programVersion: PROGRAM_VERSION,
+    nextDay: 'A',
+    sessionCount: 0,
+    pillars: {
+      push:{stage:0, level:0, hits:0, misses:0, deload:false},
+      pull:{stage:0, level:0, hits:0, misses:0, deload:false},
+      legs:{stage:0, level:0, hits:0, misses:0, deload:false},
+      core:{stage:0, level:0, hits:0, misses:0, deload:false}
+    },
+    history: []
+  };
+}
+
+function migrateState(parsed){
+  if(!parsed.schemaVersion || parsed.schemaVersion < 2){
+    Object.keys(defaultState().pillars).forEach(pid=>{
+      if(!parsed.pillars[pid]) parsed.pillars[pid] = defaultState().pillars[pid];
+      const p = parsed.pillars[pid];
+      if(p.level === undefined) p.level = 0;
+      if(p.misses === undefined) p.misses = 0;
+      if(p.deload === undefined) p.deload = false;
+    });
+    (parsed.history || []).forEach(h=>{ if(!h.programVersion) h.programVersion = PROGRAM_VERSION; });
+    parsed.schemaVersion = SCHEMA_VERSION;
+    parsed.programVersion = parsed.programVersion || PROGRAM_VERSION;
+  }
+  return parsed;
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    if(!parsed || !parsed.pillars) return defaultState();
+    const needsMigration = !parsed.schemaVersion || parsed.schemaVersion < SCHEMA_VERSION;
+    const migrated = migrateState(parsed);
+    if(needsMigration){
+      localStorage.setItem(STORE_KEY, JSON.stringify(migrated));
+    }
+    return migrated;
+  }catch(e){ return defaultState(); }
+}
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+let state = load();
+
+/* =====================================================================
+   SECTION: LOGIC — progression, targets, validation, PRs, streaks
+   ===================================================================== */
+function currentTarget(stage, level){
+  return Math.min(stage.ceiling, stage.start + level * stage.increment);
+}
+function unitLabelFor(unit){
+  if(unit === 'seconds') return 's hold';
+  if(unit === 'repsPerLeg') return ' reps/leg';
+  return ' reps';
+}
+function validateValue(v, unit){
+  if(isNaN(v)) return 'required';
+  if(!Number.isInteger(v)) return 'whole numbers only';
+  if(v < 0) return 'no negatives';
+  const max = VALIDATION_MAX[unit] || 100;
+  if(v > max) return `max ${max}`;
+  return null;
+}
+function sessionsToNextStage(pid){
+  const prog = PROGRAM[pid];
+  const pstate = state.pillars[pid];
+  const stage = prog.stages[pstate.stage];
+  const target = currentTarget(stage, pstate.level);
+  const atCeiling = target >= stage.ceiling;
+  if(atCeiling && pstate.stage >= prog.stages.length - 1) return null; // fully maxed
+  const hitsNeeded = 2 - pstate.hits;
+  if(atCeiling) return hitsNeeded; // one more level-up = stage change
+  const levelsLeftInStage = Math.ceil((stage.ceiling - target) / stage.increment);
+  return hitsNeeded + (levelsLeftInStage - 1) * 2 + 2; // rough estimate to ceiling then stage bump
+}
+function computeStreaks(){
+  let current = 0;
+  for(let i=0;i<state.history.length;i++){
+    const h = state.history[i];
+    const allMet = Object.values(h.entries).every(e=>e.met);
+    if(allMet) current++; else break;
+  }
+  let longest = 0, running = 0;
+  [...state.history].reverse().forEach(h=>{
+    const allMet = Object.values(h.entries).every(e=>e.met);
+    if(allMet){ running++; longest = Math.max(longest, running); } else { running = 0; }
+  });
+  return { current, longest: Math.max(longest, current) };
+}
+function computePRs(){
+  const prs = {};
+  Object.keys(PROGRAM).forEach(pid=>{
+    let best = null;
+    state.history.forEach(h=>{
+      const e = h.entries[pid];
+      if(!e || !e.vals || !e.vals.length) return;
+      const maxVal = Math.max(...e.vals);
+      if(!best || maxVal > best.value) best = { value:maxVal, stageName:e.stageName, session:h.session };
+    });
+    prs[pid] = best;
+  });
+  return prs;
+}
+
+/* =====================================================================
+   SECTION: UI HELPERS
+   ===================================================================== */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* =====================================================================
+   SECTION: RENDER — Today
+   ===================================================================== */
+function renderToday(){
+  const day = state.nextDay;
+  const pillarsToday = DAY_PILLARS[day];
+  document.getElementById('sessionTag').textContent = `Session ${state.sessionCount+1}`;
+  document.getElementById('headerSub').textContent = `Day ${day} · ${pillarsToday.map(p=>PROGRAM[p].name).join(' + ')}${day==='B' ? ' + Warmup' : ''}`;
+
+  let html = `<div class="day-banner">
+    <div><div class="label">Today's session</div><div class="val">Day ${day}</div></div>
+    <div class="streak-pill">${state.sessionCount} sessions logged</div>
+  </div>`;
+
+  if(day === 'B'){
+    html += `<div class="card"><div class="pillar-tag">Warmup — fixed, every Day B</div>`;
+    WARMUP.forEach((w,i)=>{
+      html += `<div class="warmup-item">
+        <input type="checkbox" id="warm_${i}">
+        <div class="figure-box" style="width:56px;height:48px;">${figure(w.svg)}</div>
+        <div class="wtext"><div class="wname">${w.name}</div><div class="wcue">${w.reps} — ${w.cue}</div></div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  pillarsToday.forEach(pid=>{
+    const prog = PROGRAM[pid];
+    const pstate = state.pillars[pid];
+    const stage = prog.stages[pstate.stage];
+    const isFinal = pstate.stage === prog.stages.length - 1;
+    const rawTarget = currentTarget(stage, pstate.level);
+    const effTarget = pstate.deload ? Math.max(1, Math.round(rawTarget * 0.8)) : rawTarget;
+    const unitLabel = unitLabelFor(stage.unit);
+
+    html += `<div class="card" data-pillar="${pid}" data-unit="${stage.unit}">
+      ${pstate.deload ? `<div class="deload-badge">Deload session — target reduced to ${effTarget}${unitLabel}</div>` : ''}
+      <div class="card-head">
+        <div>
+          <div class="pillar-tag">${prog.name}${isFinal ? ' · Final Stage' : ''}</div>
+          <div class="exercise-name">${stage.name}</div>
+          <div class="stage-dots">${prog.stages.map((s,i)=>`<div class="dot ${i<pstate.stage?'filled':''} ${i===pstate.stage?'current':''}"></div>`).join('')}</div>
+        </div>
+        <div class="figure-box">${figure(stage.svg)}</div>
+      </div>
+      <div class="cue">${stage.cue}</div>
+      <ul class="mistakes">${stage.mistakes.map(m=>`<li>${m}</li>`).join('')}</ul>
+      <div class="target-row">Target: ${stage.sets} sets × ${effTarget}${unitLabel}${pstate.deload ? ' (deload)' : ''}</div>
+      <div class="sets-row">
+        ${Array.from({length:stage.sets}).map((_,i)=>`
+          <div class="set-input">
+            <label>Set ${i+1}</label>
+            <input type="number" inputmode="numeric" min="0" step="1" data-pillar="${pid}" data-set="${i}" placeholder="${effTarget}">
+          </div>`).join('')}
+      </div>
+      <div class="field-error" id="err_${pid}" style="display:none;"></div>
+      <div class="rest-timer">
+        <div class="rest-btn" data-rest="${pid}">Start 90s rest</div>
+        <div class="rest-display" id="restDisplay_${pid}"></div>
+      </div>
+      <div class="rpe-label">How did it feel? (optional)</div>
+      <div class="rpe-row" data-rpe-group="${pid}">
+        <div class="rpe-btn" data-rpe="easy">Easy</div>
+        <div class="rpe-btn" data-rpe="normal">Normal</div>
+        <div class="rpe-btn" data-rpe="hard">Hard</div>
+      </div>
+      <div class="rpe-label">If you miss, why? (optional, only used if you miss)</div>
+      <div class="rpe-row" data-fail-group="${pid}">
+        <div class="rpe-btn" data-fail="strength">Strength</div>
+        <div class="rpe-btn" data-fail="technique">Technique</div>
+        <div class="rpe-btn" data-fail="recovery">Recovery</div>
+        <div class="rpe-btn" data-fail="pain">Pain</div>
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="card notes-card">
+    <label>Notes (optional) — sleep, soreness, grip, anything worth remembering</label>
+    <textarea id="sessionNotes" placeholder="e.g. slept 5hrs, right wrist felt weak on set 3"></textarea>
+  </div>`;
+
+  html += `<button class="complete-btn" id="completeBtn">Complete Session</button>`;
+  html += `<div class="cooldown-line">Cooldown: ~2 min light stretching — wrists, shoulders, hips before you stop.</div>`;
+  document.getElementById('view-today').innerHTML = html;
+
+  document.getElementById('completeBtn').addEventListener('click', completeSession);
+
+  document.querySelectorAll('.rpe-row[data-rpe-group] .rpe-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const group = btn.closest('.rpe-row');
+      group.querySelectorAll('.rpe-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+  document.querySelectorAll('.rpe-row[data-fail-group] .rpe-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const group = btn.closest('.rpe-row');
+      group.querySelectorAll('.rpe-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+  document.querySelectorAll('[data-rest]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(btn.dataset.running === '1') return;
+      let seconds = 90;
+      const display = document.getElementById(`restDisplay_${btn.dataset.rest}`);
+      btn.dataset.running = '1';
+      btn.classList.add('running');
+      btn.textContent = 'Resting...';
+      display.textContent = `${seconds}s`;
+      const iv = setInterval(()=>{
+        seconds -= 1;
+        if(seconds <= 0){
+          clearInterval(iv);
+          display.textContent = 'Go';
+          btn.textContent = 'Start 90s rest';
+          btn.classList.remove('running');
+          btn.dataset.running = '0';
+        } else { display.textContent = `${seconds}s`; }
+      }, 1000);
+    });
+  });
+}
+
+/* =====================================================================
+   SECTION: LOGIC — complete session
+   ===================================================================== */
+function completeSession(){
+  const btn = document.getElementById('completeBtn');
+  if(btn.disabled) return;
+  btn.disabled = true;
+
+  const day = state.nextDay;
+  const pillarsToday = DAY_PILLARS[day];
+  const entries = {};
+  const prevPillarStates = {};
+  let allValid = true;
+
+  pillarsToday.forEach(pid=>{
+    const prog = PROGRAM[pid];
+    const pstate = state.pillars[pid];
+    const stage = prog.stages[pstate.stage];
+    const rawTarget = currentTarget(stage, pstate.level);
+    const effTarget = pstate.deload ? Math.max(1, Math.round(rawTarget * 0.8)) : rawTarget;
+    const inputs = document.querySelectorAll(`input[data-pillar="${pid}"]`);
+    const vals = [];
+    const errBox = document.getElementById(`err_${pid}`);
+    let localError = null;
+
+    inputs.forEach(inp=>{
+      const raw = inp.value.trim();
+      const v = raw === '' ? NaN : Number(raw);
+      const err = validateValue(v, stage.unit);
+      if(err){
+        allValid = false;
+        localError = err;
+        inp.classList.add('invalid');
+      } else {
+        inp.classList.remove('invalid');
+        vals.push(v);
+      }
+    });
+
+    if(localError){
+      errBox.style.display = 'block';
+      errBox.textContent = `Check your numbers — ${localError}.`;
+    } else {
+      errBox.style.display = 'none';
+    }
+
+    if(vals.length === inputs.length){
+      const met = vals.every(v => v >= effTarget);
+      const selectedRpe = document.querySelector(`[data-rpe-group="${pid}"] .rpe-btn.selected`);
+      const selectedFail = document.querySelector(`[data-fail-group="${pid}"] .rpe-btn.selected`);
+      entries[pid] = {
+        stageName: stage.name, vals, met, target: effTarget, wasDeload: pstate.deload,
+        rpe: selectedRpe ? selectedRpe.dataset.rpe : null,
+        failCause: (!met && selectedFail) ? selectedFail.dataset.fail : null
+      };
+      prevPillarStates[pid] = JSON.parse(JSON.stringify(pstate));
+    }
+  });
+
+  if(!allValid){
+    btn.disabled = false;
+    toast('Fix the highlighted numbers before completing');
+    return;
+  }
+
+  let warmupDone = true;
+  if(day === 'B'){
+    WARMUP.forEach((w,i)=>{
+      const cb = document.getElementById(`warm_${i}`);
+      if(!cb.checked) warmupDone = false;
+    });
+  }
+
+  const stageUps = [];
+  const deloadsTriggered = [];
+  const deloadsCleared = [];
+
+  pillarsToday.forEach(pid=>{
+    const prog = PROGRAM[pid];
+    const pstate = state.pillars[pid];
+    const stage = prog.stages[pstate.stage];
+    const e = entries[pid];
+
+    if(pstate.deload){
+      pstate.deload = false;
+      pstate.misses = 0;
+      deloadsCleared.push(prog.name);
+    } else if(e.met){
+      pstate.hits += 1;
+      pstate.misses = 0;
+      if(pstate.hits >= 2){
+        pstate.hits = 0;
+        const target = currentTarget(stage, pstate.level);
+        if(target < stage.ceiling){
+          pstate.level += 1;
+        } else if(pstate.stage < prog.stages.length - 1){
+          pstate.stage += 1;
+          pstate.level = 0;
+          stageUps.push(`${prog.name} → ${prog.stages[pstate.stage].name}`);
+        }
+      }
+    } else {
+      pstate.hits = 0;
+      pstate.misses += 1;
+      if(pstate.misses >= DELOAD_THRESHOLD){
+        pstate.deload = true;
+        pstate.misses = 0;
+        deloadsTriggered.push(prog.name);
+      }
+    }
+  });
+
+  const notes = (document.getElementById('sessionNotes') || {}).value || '';
+
+  state.history.unshift({
+    session: state.sessionCount + 1,
+    day: day,
+    programVersion: PROGRAM_VERSION,
+    entries: entries,
+    warmupDone: day === 'B' ? warmupDone : null,
+    notes: notes.trim(),
+    prevPillarStates: prevPillarStates
+  });
+  state.sessionCount += 1;
+  state.nextDay = day === 'A' ? 'B' : 'A';
+  save();
+
+  if(stageUps.length) toast(`Stage up! ${stageUps.join(' · ')}`);
+  else if(deloadsTriggered.length) toast(`Deload triggered: ${deloadsTriggered.join(', ')} — reduced target next time`);
+  else if(deloadsCleared.length) toast('Deload complete — back to normal target next session');
+  else toast('Session logged');
+
+  renderToday();
+  renderProgress();
+  renderHistory();
+}
+
+/* =====================================================================
+   SECTION: RENDER — Progress
+   ===================================================================== */
+function renderProgress(){
+  const totalStages = Object.keys(PROGRAM).length * 3;
+  const doneStages = Object.values(state.pillars).reduce((s,p)=>s+p.stage,0);
+  const pct = Math.round((doneStages/totalStages)*100);
+  const streaks = computeStreaks();
+  const prs = computePRs();
+
+  let html = `<div class="stat-row">
+    <div class="stat-box"><div class="num">${state.sessionCount}</div><div class="lbl">Sessions</div></div>
+    <div class="stat-box"><div class="num">${pct}%</div><div class="lbl">Foundation Built</div></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">${streaks.current}</div><div class="lbl">Current Streak</div></div>
+    <div class="stat-box"><div class="num">${streaks.longest}</div><div class="lbl">Longest Streak</div></div>
+  </div>`;
+
+  html += `<div class="pr-card"><div class="pr-title">Personal Records</div>`;
+  Object.keys(PROGRAM).forEach(pid=>{
+    const prog = PROGRAM[pid];
+    const pr = prs[pid];
+    const unitLabel = unitLabelFor(prog.stages[0].unit);
+    html += `<div class="pr-row"><div class="prn">${prog.name}</div><div class="prv">${pr ? `${pr.value}${unitLabel} · ${pr.stageName}` : '—'}</div></div>`;
+  });
+  html += `</div>`;
+
+  Object.keys(PROGRAM).forEach(pid=>{
+    const prog = PROGRAM[pid];
+    const pstate = state.pillars[pid];
+    const remain = sessionsToNextStage(pid);
+    let etaText = remain === null ? 'Final stage — maintain' : `~${remain} session${remain===1?'':'s'} to next milestone`;
+    if(pstate.deload) etaText = 'Deload next session';
+    else if(pstate.misses > 0) etaText += ` · ${pstate.misses}/${DELOAD_THRESHOLD} misses`;
+
+    html += `<div class="ladder-card">
+      <div class="ladder-head"><div class="pname">${prog.name}</div><div class="peta">${etaText}</div></div>
+      <div class="rungs">
+        ${prog.stages.map((s,i)=>{
+          let cls = 'rung-bar', lblCls = '', inner = '';
+          if(i < pstate.stage){ cls += ' done'; lblCls='done'; }
+          else if(i === pstate.stage){
+            cls += ' active'; lblCls='active';
+            const target = currentTarget(s, pstate.level);
+            const levelPct = Math.min(100, ((target - s.start) / (s.ceiling - s.start || 1)) * 100);
+            inner = `<div class="fill" style="width:${levelPct}%"></div>`;
+          }
+          return `<div class="rung"><div class="${cls}">${inner}</div><div class="rung-label ${lblCls}">${s.name}</div></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('view-progress').innerHTML = html;
+}
+
+/* =====================================================================
+   SECTION: RENDER — History
+   ===================================================================== */
+function renderHistory(){
+  if(!state.history.length){
+    document.getElementById('view-history').innerHTML = `<div class="empty">No sessions logged yet.<br>Complete today's session to start your log.</div>`;
+    return;
+  }
+  let html = `<div class="undo-btn" id="undoBtn">Undo Last Session</div><div class="card">`;
+  state.history.forEach(h=>{
+    const pillarSummary = Object.keys(h.entries).map(pid=>{
+      const e = h.entries[pid];
+      const tag = e.wasDeload ? ' (deload)' : '';
+      const rpe = e.rpe ? ` [${e.rpe}]` : '';
+      const fail = e.failCause ? ` {${e.failCause}}` : '';
+      return `${PROGRAM[pid].name}: ${e.vals.join('/')} ${e.met ? '✓' : ''}${tag}${rpe}${fail}`;
+    }).join(' · ');
+    html += `<div class="hist-entry"><div class="hd">#${h.session} · Day ${h.day}</div><div class="hb">${pillarSummary}</div></div>`;
+    if(h.notes){
+      html += `<div class="hist-entry" style="border-bottom:none; padding-top:0;"><div class="hd"></div><div class="hb" style="color:var(--ink-dim); font-style:italic;">${h.notes}</div></div>`;
+    }
+  });
+  html += `</div>`;
+  document.getElementById('view-history').innerHTML = html;
+
+  document.getElementById('undoBtn').addEventListener('click', undoLastSession);
+}
+
+function undoLastSession(){
+  if(!state.history.length) return;
+  if(!confirm('Undo the most recent session? Stage/level progress reverts to before that session, and it becomes today\'s pending session again.')) return;
+  const last = state.history[0];
+  Object.keys(last.prevPillarStates).forEach(pid=>{
+    state.pillars[pid] = JSON.parse(JSON.stringify(last.prevPillarStates[pid]));
+  });
+  state.history.shift();
+  state.sessionCount -= 1;
+  state.nextDay = last.day;
+  save();
+  renderToday(); renderProgress(); renderHistory();
+  toast('Last session undone — redo it with corrected numbers');
+}
+
+/* =====================================================================
+   SECTION: EVENTS & INIT
+   ===================================================================== */
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`view-${btn.dataset.view}`).classList.add('active');
+  });
+});
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `foundation-os-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Backup downloaded');
+});
+
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  document.getElementById('importFile').click();
+});
+
+document.getElementById('importFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const imported = JSON.parse(evt.target.result);
+      if(!imported || !imported.pillars || !Array.isArray(imported.history)){
+        toast('That file doesn\'t look like a Foundation OS backup');
+        return;
+      }
+      if(confirm('This replaces all current progress with the imported backup. Continue?')){
+        state = migrateState(imported);
+        save();
+        renderToday(); renderProgress(); renderHistory();
+        toast('Backup restored');
+      }
+    }catch(err){ toast('Could not read that file'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(confirm('This clears all logged sessions and stage progress. Continue?')){
+    state = defaultState();
+    save();
+    renderToday(); renderProgress(); renderHistory();
+    toast('Progress reset');
+  }
+});
+
+document.getElementById('programVersionLine').innerHTML = `<b>Program version:</b> ${PROGRAM_VERSION} · schema v${SCHEMA_VERSION}`;
+
+renderToday();
+renderProgress();
+renderHistory();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
