@@ -1,325 +1,492 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ascent</title>
-<link rel="manifest" href="manifest.json">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2748f5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ascent">
+<meta name="description" content="Ascent: an adaptive calisthenics skill coach for handstand, L-sit, pull-up, legs and planche foundations, with hold and rest timers.">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
+<title>Ascent</title>
 <style>
-:root{--bg:#e9ebee;--card:#fff;--ink:#12151c;--dim:#5c6472;--line:#d3d7de;--blue:#2748f5;--blue2:#1b33b8;--tape:#ffd43b;--ok:#1e9e6a;--bad:#d6402f;
---disp:Bahnschrift,"DIN Alternate","Arial Narrow",system-ui,sans-serif;--body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-bottom:calc(76px + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased}
-header{background:var(--blue);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
-header h1{font:700 24px var(--disp);letter-spacing:.02em}
-#tag{font:600 13px var(--disp);background:var(--tape);color:var(--ink);padding:4px 11px;border-radius:4px}
-main{max-width:560px;margin:0 auto;padding:16px 14px}
-.view{display:none}.view.on{display:block}
-h2{font:700 20px var(--disp);margin:6px 0 10px}
-.sub{color:var(--dim);font-size:13px}
-.day{background:var(--ink);color:#fff;border-radius:10px;padding:16px 18px;margin-bottom:12px}
-.day b{font:700 30px var(--disp);display:block}
-.day span{color:#b9c0cc;font-size:13px}
-.rest{position:sticky;top:58px;z-index:5;display:flex;gap:8px;align-items:center;background:var(--bg);padding:6px 0 10px}
-.rest button{flex:1;background:var(--card);border:2px solid var(--ink);border-radius:8px;padding:10px;font:700 14px var(--disp);color:var(--ink)}
-.rest button.run{background:var(--tape)}
-#rt{font:700 22px var(--disp);min-width:64px;text-align:center}
-.blk{background:var(--card);border-left:6px solid var(--blue);border-radius:4px 12px 12px 4px;padding:16px;margin-bottom:12px}
-.blk.pl{border-left-color:var(--tape)}
-.bh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.trk{font:600 13px var(--disp);color:var(--blue);letter-spacing:.04em}
-.big{font:700 40px/1 var(--disp);margin:4px 0}
-.nm{font-weight:600}
-.pips{display:flex;gap:5px;margin-top:6px}
-.pips i{width:16px;height:8px;border-radius:2px;background:var(--line)}
-.pips i.f{background:var(--tape);outline:1px solid #b8951a}
-.cue{color:var(--dim);font-size:13.5px;margin:10px 0}
-.sets{display:flex;gap:8px}
-.sets label{flex:1;font-size:11px;color:var(--dim)}
-.sets input{width:100%;margin-top:3px;font:700 22px var(--disp);text-align:center;padding:10px 2px;border:2px solid var(--line);border-radius:8px;background:#f6f7f9;color:var(--ink)}
-.sets input:focus{outline:none;border-color:var(--blue);background:#fff}
-.sets input.bad{border-color:var(--bad)}
-.pain{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;color:var(--dim)}.pain input{width:18px;height:18px;accent-color:var(--bad)}
-.err{color:var(--bad);font-size:12px;margin-top:6px;display:none}
-.prep label{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
-.prep label:last-child{border:0}
-.prep input{width:20px;height:20px;accent-color:var(--blue);margin-top:2px}
-.prep small{display:block;color:var(--dim)}
-textarea{width:100%;min-height:64px;border:2px solid var(--line);border-radius:8px;padding:10px;font:inherit;background:#f6f7f9}
-.go{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:17px;font:700 18px var(--disp);letter-spacing:.03em;margin-top:6px}
-.go:active{background:var(--blue2)}.go:disabled{background:#9aa3b5}
-.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px}
-.ph{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
-.ph:last-child{border:0}
-.ph em{font:700 13px var(--disp);font-style:normal;width:64px;flex-shrink:0;color:var(--dim)}
-.ph.cur em{color:var(--blue)}.ph.cur{font-weight:600}
-.st{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
-.st:last-child{border:0}
-.st .d{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex-shrink:0}
-.st.done .d{background:var(--ok);border-color:var(--ok)}
-.st.cur .d{background:var(--tape);border-color:var(--ink)}
-.st.cur{font-weight:700}
-.st .t{margin-left:auto;font:600 13px var(--disp);color:var(--dim)}
-.lock{opacity:.9;border:2px dashed var(--dim);background:transparent}
-.req{font-size:13px;color:var(--dim)}.req b{color:var(--ok)}.req s{color:var(--dim)}
-.he{padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
-.he:last-child{border:0}.he b{font-family:var(--disp)}
-.btn{display:block;width:100%;background:var(--card);border:2px solid var(--ink);border-radius:8px;padding:12px;font:700 14px var(--disp);margin-bottom:8px;color:var(--ink)}
-.row{display:flex;gap:8px}
-.danger{color:var(--bad);border-color:var(--bad)}
-.g p{margin-bottom:10px}
-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:2px solid var(--ink);display:flex;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
-nav button{flex:1;background:none;border:0;font:600 12px var(--disp);color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px}
-nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-nav button.on{color:var(--blue)}
-#toast{position:fixed;top:12px;left:50%;transform:translate(-50%,-150%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:8px;font:600 14px var(--disp);z-index:99;transition:transform .3s;max-width:90%;text-align:center}
-#toast.on{transform:translate(-50%,0)}
-:focus-visible{outline:3px solid var(--tape);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+:root{--bg:#eef0f3;--card:#fff;--ink:#11151d;--dim:#626b78;--line:#d6dae1;--blue:#2748f5;--blue2:#1835c7;--tape:#ffd43b;--ok:#16875a;--bad:#c83a2b;--warn:#a06b00;--soft:#f6f7f9;--disp:Bahnschrift,"DIN Alternate","Arial Narrow",system-ui,sans-serif;--body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--ink);font:15px/1.48 var(--body);padding-bottom:calc(78px + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased}button,input,textarea,select{font:inherit}button{cursor:pointer}header{background:var(--blue);color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20;box-shadow:0 2px 8px #0002}header h1{font:800 24px var(--disp);letter-spacing:.04em}#tag{font:700 12px var(--disp);background:var(--tape);color:var(--ink);padding:5px 10px;border-radius:6px}.wrap{max-width:620px;margin:auto;padding:14px}.view{display:none}.view.on{display:block}h2{font:800 20px var(--disp);margin:5px 0 9px}h3{font:800 15px var(--disp);margin-bottom:5px}.sub{color:var(--dim);font-size:13px}.muted{color:var(--dim)}.card{background:var(--card);border-radius:12px;padding:15px;margin-bottom:12px;box-shadow:0 1px 2px #0000000a}.hero{background:var(--ink);color:#fff;border-radius:12px;padding:16px;margin-bottom:12px}.hero b{font:800 32px/1 var(--disp);display:block}.hero small{color:#c1c7d0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:var(--soft);border-radius:9px;padding:10px}.stat b{display:block;font:800 22px var(--disp)}.stat span{font-size:11px;color:var(--dim)}.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font:700 11px var(--disp);background:var(--soft);color:var(--dim)}.pill.ok{background:#e8f6ef;color:var(--ok)}.pill.warn{background:#fff3d2;color:var(--warn)}.pill.bad{background:#fdeae7;color:var(--bad)}.btn{width:100%;border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:9px;padding:11px 12px;font:800 14px var(--disp);margin-top:8px}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.yellow{background:var(--tape)}.btn.danger{border-color:var(--bad);color:var(--bad)}.btn.small{width:auto;padding:8px 10px;margin:0}.row{display:flex;gap:8px}.row>*{flex:1}.day{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--ink);color:#fff;border-radius:11px;padding:13px 15px;margin-bottom:10px}.day b{font:800 28px var(--disp)}.day span{color:#c0c6cf;font-size:12px;text-align:right}.banner{border-left:5px solid var(--blue);background:var(--card);border-radius:5px 10px 10px 5px;padding:11px 12px;margin-bottom:10px}.banner.warn{border-left-color:var(--tape)}.banner.bad{border-left-color:var(--bad)}.readiness{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}.readiness label{font-size:11px;color:var(--dim)}.readiness select,.field input,.field textarea,.set input{width:100%;border:2px solid var(--line);border-radius:8px;background:var(--soft);padding:9px;color:var(--ink)}.field{margin-top:9px}.field label{display:block;font-size:11px;color:var(--dim);margin-bottom:3px}.prep label{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.prep label:last-child{border:0}.prep input{width:20px;height:20px;accent-color:var(--blue);margin-top:2px}.prep small{display:block;color:var(--dim)}.exercise{background:var(--card);border-left:6px solid var(--blue);border-radius:4px 12px 12px 4px;padding:14px;margin-bottom:11px}.exercise.planche{border-left-color:var(--tape)}.exhead{display:flex;justify-content:space-between;gap:10px}.track{font:700 12px var(--disp);color:var(--blue);letter-spacing:.05em}.big{font:800 30px/1 var(--disp);margin:3px 0}.exname{font-weight:700}.mode{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em}.cue{font-size:13px;color:var(--dim);margin:9px 0}.sets{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.set label{display:block;font-size:10px;color:var(--dim)}.set input{font:800 21px var(--disp);text-align:center;margin-top:3px;padding:9px 3px}.set input.bad{border-color:var(--bad)}.quality{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.quality select{width:100%;border:2px solid var(--line);border-radius:8px;background:var(--soft);padding:8px}.painline{display:flex;gap:7px;align-items:center;color:var(--dim);font-size:12px;margin-top:9px}.painline input{accent-color:var(--bad);width:18px;height:18px}.restbar{position:sticky;top:57px;z-index:10;background:var(--bg);padding:5px 0 9px;display:flex;gap:7px;align-items:center}.restbar button{flex:1;background:var(--card);border:2px solid var(--ink);border-radius:8px;padding:9px;font:800 12px var(--disp)}.restbar button.run{background:var(--tape)}#rt{min-width:55px;text-align:center;font:800 20px var(--disp)}.progressline{height:7px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:7px}.progressline i{display:block;height:100%;background:var(--blue);border-radius:99px}.pips{display:flex;gap:4px;margin-top:6px}.pips i{width:13px;height:7px;border-radius:2px;background:var(--line)}.pips i.f{background:var(--tape);outline:1px solid #b8951a}.complete{margin-top:10px}.notice{font-size:12px;color:var(--dim);text-align:center;margin-top:9px}.roadcard{background:var(--card);border-radius:12px;padding:14px;margin-bottom:10px}.stage{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line)}.stage:last-child{border:0}.dot{width:14px;height:14px;border:2px solid var(--line);border-radius:50%;flex:none}.stage.done .dot{background:var(--ok);border-color:var(--ok)}.stage.cur .dot{background:var(--tape);border-color:var(--ink)}.stage.cur{font-weight:800}.stage .target{margin-left:auto;font:600 11px var(--disp);color:var(--dim);text-align:right}.locked{opacity:.9;border:2px dashed var(--dim)}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}.metric{background:var(--soft);padding:11px;border-radius:9px}.metric b{font:800 22px var(--disp);display:block}.metric small{color:var(--dim)}.chart{height:120px;display:flex;align-items:end;gap:4px;padding:10px 0}.bar{flex:1;background:var(--blue);min-height:4px;border-radius:3px 3px 0 0}.history{border-top:1px solid var(--line);padding:10px 0}.history:first-child{border-top:0}.history b{font-family:var(--disp)}.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:10px}.tabs button{white-space:nowrap;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:7px 10px;font:700 11px var(--disp)}.tabs button.on{border-color:var(--blue);color:var(--blue);background:#edf0ff}details{background:var(--card);border-radius:11px;margin-bottom:9px;padding:12px}summary{font:800 14px var(--disp);cursor:pointer}details p{margin-top:9px;color:#3e4652;font-size:13px}.toast{position:fixed;left:50%;top:12px;transform:translate(-50%,-150%);background:var(--ink);color:#fff;padding:11px 16px;border-radius:8px;font:700 13px var(--disp);z-index:100;max-width:92%;transition:transform .25s}.toast.on{transform:translate(-50%,0)}nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:2px solid var(--ink);display:flex;padding:6px 7px calc(6px + env(safe-area-inset-bottom));z-index:30}nav button{flex:1;background:none;border:0;color:var(--dim);font:700 11px var(--disp);display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px}nav button.on{color:var(--blue)}nav svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.modal{position:fixed;inset:0;background:#11151dcc;display:none;align-items:end;z-index:50}.modal.on{display:flex}.sheet{background:var(--bg);width:100%;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:17px 14px calc(20px + env(safe-area-inset-bottom))}.sheet h2{font-size:22px}.choicegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.choice{border:2px solid var(--line);background:var(--card);border-radius:9px;padding:10px;text-align:left}.choice b{display:block;font:800 16px var(--disp)}.choice.on{border-color:var(--blue);background:#edf0ff}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}:focus-visible{outline:3px solid var(--tape);outline-offset:2px}@media(min-width:700px){body{padding-bottom:0}nav{position:sticky;bottom:auto;max-width:620px;margin:auto;border:0;background:transparent;top:0;z-index:25}nav button{background:var(--card);border-bottom:2px solid var(--ink)}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ---------- v3 fixes & timer UI ---------- */
+:root{--navh:62px}
+[hidden]{display:none!important}
+input,select,textarea{font-size:16px}
+body{padding-bottom:calc(var(--navh) + 28px + env(safe-area-inset-bottom))}
+body.tm{padding-bottom:calc(var(--navh) + 112px + env(safe-area-inset-bottom))}
+body.lock{overflow:hidden}
+nav{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:620px;margin:0 auto;height:calc(var(--navh) + env(safe-area-inset-bottom));padding:6px 7px env(safe-area-inset-bottom);background:var(--card);border:0;border-top:2px solid var(--ink);z-index:30}
+nav button{background:none;border:0}
+@media(min-width:700px){body,body.tm{padding-bottom:calc(var(--navh) + 40px)}nav{position:fixed;top:auto;bottom:0;background:var(--card);border:2px solid var(--ink);border-bottom:0;border-radius:12px 12px 0 0}nav button{background:none;border:0}}
+.toast{top:calc(68px + env(safe-area-inset-top));transform:translate(-50%,-14px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.toast.on{transform:translate(-50%,0);opacity:1}
+.restbar{position:static;top:auto;display:flex;gap:7px;align-items:center;padding:0 0 10px;background:none}
+.restbar span{font:800 12px var(--disp);color:var(--dim);letter-spacing:.06em}
+.restbar button{flex:1;background:var(--card);border:2px solid var(--ink);border-radius:8px;padding:9px 4px;font:800 13px var(--disp)}
+.set .go{width:100%;margin-top:5px;background:#edf0ff;border:2px solid var(--blue);color:var(--blue);border-radius:8px;padding:7px 2px;font:800 11px var(--disp)}
+.btn:disabled{opacity:.5;cursor:default}
+.dock{position:fixed;left:10px;right:10px;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 8px);max-width:600px;margin:0 auto;background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:35;box-shadow:0 6px 20px #0005;overflow:hidden}
+.dock.go{background:var(--ok)}
+.dkl small{display:block;font:700 11px var(--disp);letter-spacing:.06em;opacity:.8}
+.dkl b{font:800 34px/1 var(--disp);font-variant-numeric:tabular-nums}
+.dkb{display:flex;gap:6px}.dkb span{display:flex;gap:6px}
+.dkb button{background:#ffffff26;color:#fff;border:0;border-radius:8px;padding:11px 12px;font:800 13px var(--disp)}
+.dkb button.p{background:var(--tape);color:var(--ink)}
+.dkbar{position:absolute;left:0;bottom:0;height:4px;background:var(--tape);width:0;transition:width .25s linear}
+.holdov{position:fixed;inset:0;z-index:60;background:var(--blue);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px 20px calc(24px + env(safe-area-inset-bottom));text-align:center;transition:background .3s}
+.holdov.ok{background:var(--ok)}
+#hPhase{font:800 22px var(--disp);letter-spacing:.08em}
+#hTime{font:800 clamp(96px,34vw,200px)/1 var(--disp);font-variant-numeric:tabular-nums}
+#hSub{font:600 16px var(--disp);opacity:.92;max-width:90%}
+.hbar{width:min(420px,88%);height:10px;background:#ffffff40;border-radius:99px;overflow:hidden}
+.hbar i{display:block;height:100%;background:var(--tape);width:0;transition:width .25s linear}
+#hStop{width:min(420px,88%);padding:18px;font:800 20px var(--disp);background:var(--tape);color:var(--ink);border:0;border-radius:14px;margin-top:14px}
+#hCancel{background:none;border:2px solid #fff9;color:#fff;border-radius:10px;padding:10px 22px;font:800 14px var(--disp);margin-top:4px}
+.toast{width:max-content;max-width:92vw;text-align:center}
+.prep input{flex:none}
+.readiness select{padding:9px 5px}
+.readyrow{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12px;color:var(--dim)}
+.readyrow input{width:64px;text-align:center;border:2px solid var(--line);border-radius:8px;background:var(--soft);padding:7px;color:var(--ink);font:800 16px var(--disp)}
+.dt{background:none;border-radius:0;margin:10px 0 0;padding:0;border-top:1px solid var(--line)}
+.dt summary{font:800 12px var(--disp);color:var(--dim);padding:10px 0 4px;cursor:pointer}
+.dt .readyrow{margin-top:10px}
+@media(prefers-reduced-motion:reduce){.dkbar,.hbar i{transition:none!important}}
+
 </style>
 </head>
 <body>
-<div id="toast" role="status"></div>
 <header><h1>ASCENT</h1><span id="tag">Session 1</span></header>
-<main>
-  <section class="view on" id="v-today"></section>
-  <section class="view" id="v-road"></section>
-  <section class="view" id="v-log"></section>
-  <section class="view g" id="v-guide"></section>
-</main>
-<nav>
-  <button class="on" data-v="today"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Today</button>
-  <button data-v="road"><svg viewBox="0 0 24 24"><path d="M4 20l6-8 4 4 6-10"/></svg>Roadmap</button>
-  <button data-v="log"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 9h6M9 13h6"/></svg>Log</button>
-  <button data-v="guide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M12 11v5"/></svg>Guide</button>
+<div class="wrap">
+<section id="v-today" class="view on"></section>
+<section id="v-progress" class="view"></section>
+<section id="v-road" class="view"></section>
+<section id="v-log" class="view"></section>
+<section id="v-guide" class="view"></section>
+</div>
+<nav aria-label="Primary">
+<button class="on" data-v="today"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Today</button>
+<button data-v="progress"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-7"/></svg>Progress</button>
+<button data-v="road"><svg viewBox="0 0 24 24"><path d="M4 20l6-8 4 4 6-10"/></svg>Roadmap</button>
+<button data-v="log"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 9h6M9 13h6"/></svg>Log</button>
+<button data-v="guide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M12 11v5"/></svg>Guide</button>
 </nav>
+<div id="dock" class="dock" hidden role="timer"><div class="dkl"><small id="dkLabel">REST</small><b id="dkTime">0:00</b></div><div class="dkb"><span id="dkAdj"><button data-tm="-15">−15s</button><button data-tm="15">+15s</button></span><button class="p" id="dkSkip" data-tm="skip">Skip</button></div><i class="dkbar" id="dkBar"></i></div>
+<div id="hold" class="holdov" hidden role="dialog" aria-modal="true" aria-label="Hold timer"><div id="hPhase">GET READY</div><div id="hTime">5</div><div id="hSub"></div><div class="hbar"><i id="hBar"></i></div><button id="hStop">START NOW</button><button id="hCancel">Cancel</button></div>
+<div id="toast" class="toast" role="status"></div>
+<div id="setup" class="modal" role="dialog" aria-modal="true" aria-labelledby="setupTitle"><div class="sheet"><h2 id="setupTitle">Start Ascent</h2><p class="sub">A 2–4 minute baseline places you at a sensible starting stage. Use clean reps only and don't test through pain. Leave anything you can't do at 0.</p><div id="assessment"></div><div class="row"><button class="btn" id="skipSetup">Start beginner</button><button class="btn primary" id="saveSetup">Use assessment</button></div></div></div>
 <script>
-/* ---------- PROGRAM DATA: [name, sets, target, unit, cue] ---------- */
+'use strict';
+/* ================= DATA ================= */
+const KEY='ascent_v3',OLD='ascent_v2',RESTKEY='ascent_rest_end';
+const CLEAN=3,MISS=3,NEAR=.8;
 const TRACKS={
-handstand:{name:'Handstand',stages:[
- ['Pike Hold',3,30,'s','Hands shoulder-width, hips stacked high over hands, legs straight. Push the floor away, head between arms.'],
- ['Wall Walks',3,5,'reps','Start on your belly, feet at the wall. Walk hands in until your nose nearly touches, then walk back. Slow.'],
- ['Chest-to-Wall Hold',4,30,'s','Face the wall, walk up until chest touches. Ribs in, glutes tight, shoulders pushed tall by your ears.'],
- ['Kick-up + Toe Pulls',5,15,'s','Kick up facing the wall, then pull the heels off so only toes touch. Fingertips grip the floor to catch balance.'],
- ['Freestanding Balance',6,5,'s','Kick up away from the wall. Practice a cartwheel bail-out first. Only clean holds count.'],
- ['Freestanding Handstand',5,10,'s','Straight line, hollow ribs, eyes between your hands. Balance with fingertips and palm heels.']]},
-push:{name:'Push',stages:[
- ['Push-up',3,15,'reps','Elbows ~45°, straight line head to heel, chest to floor, full lockout.'],
- ['Pike Push-up',3,10,'reps','Hips high, head travels between the hands. Builds the shoulder strength handstand needs.'],
- ['Elevated Pike Push-up',3,8,'reps','Feet on a chair. More of your bodyweight sits over the shoulders. Slow lowering.'],
- ['Pseudo Planche Push-up',3,8,'reps','Hands by the waist, fingers back or out. Lean shoulders past hands, keep hollow body, push.']]},
-pull:{name:'Pull',stages:[
- ['Dead Hang',3,30,'s','Active hang: shoulders pulled down away from ears, ribs in. Grip only as long as form holds.'],
- ['Scapular Pull-up',3,8,'reps','Arms straight. Pull shoulder blades down and back to lift a few cm. No elbow bend.'],
- ['Negative Pull-up',3,5,'reps','Jump or step to chin over the bar, lower for a slow 5-count to full hang.'],
- ['Chin-up',3,5,'reps','Underhand grip, chest to the bar, controlled lowering, full hang each rep.'],
- ['Pull-up',3,8,'reps','Overhand, shoulder-width. Chin clears the bar, no kipping, full hang at the bottom.']]},
-legs:{name:'Legs',stages:[
- ['Squat',3,20,'reps','Feet shoulder-width, hips back and down, heels flat, thighs to parallel or lower, chest tall.'],
- ['Split Squat',3,10,'leg','Long staggered stance. Back knee drops straight down, front knee tracks over the toes. Reps per leg.'],
- ['Bulgarian Split Squat',3,10,'leg','Rear foot on a chair. Drop straight down on the front leg, full depth. Reps per leg.'],
- ['Assisted Pistol',3,5,'leg','Single-leg squat to a low box or chair, holding a doorframe for light help. Reps per leg.'],
- ['Pistol Squat',3,5,'leg','Full single-leg squat, other leg straight out, heel down. Reps per leg.']]},
-core:{name:'Core',stages:[
- ['Hollow Hold',3,30,'s','Lower back glued to the floor, arms overhead, legs low but not arching. The shape underlies every skill here.'],
- ['Tuck L-sit',3,15,'s','Hands by the hips (floor or two chairs), push down hard, knees to chest, hips off the floor.'],
- ['One-Leg L-sit',3,12,'s','One leg straight out, one tucked. Swap legs each set. Shoulders depressed, arms locked.'],
- ['L-sit',3,10,'s','Both legs straight and parallel to the floor. Push the floor away, toes pointed.']]},
-planche:{name:'Planche',stages:[
- ['Planche Lean',4,20,'s','Straight-arm plank, lean shoulders past the hands until wrists load. Protract, keep hollow. Stop if wrists hurt.'],
- ['Tuck Planche',4,10,'s','From the lean, lift the feet, knees tucked tight, back rounded, arms straight. Hips level with shoulders.'],
- ['Advanced Tuck Planche',4,8,'s','Flat back, hips at shoulder height, knees pulled in but not to the chest.'],
- ['Straddle Planche',4,5,'s','Legs wide, body horizontal. The finish line of this program; expect a year or more.']]}};
+ handstand:{name:'Handstand',type:'skill',stages:[
+  ['Pike Hold',3,30,'s','Hands shoulder-width. Hips high, ribs controlled, shoulders active.'],
+  ['Wall Walks',3,5,'reps','Walk slowly toward the wall and back. Own the position; no crashing.'],
+  ['Chest-to-Wall Hold',4,30,'s','Chest near wall, ribs down, glutes tight, shoulders pushed tall.'],
+  ['Kick-up + Toe Pulls',5,15,'s','Use the wall as a safety net. Pull heels away briefly and regain balance.'],
+  ['Freestanding Balance',8,5,'s','Practice controlled kick-ups and safe cartwheel bail-outs. Quality beats fatigue.'],
+  ['Freestanding Handstand',6,10,'s','Aim for repeatable clean holds, not one lucky maximum.']]},
+ push:{name:'Push',type:'strength',stages:[
+  ['High Incline Push-up',3,12,'reps','Hands on a counter or sturdy table. One straight line from head to heel, chest to the edge, full lockout.'],
+  ['Low Incline Push-up',3,12,'reps','Hands on a chair seat or low bench. Same straight line and full range. Lower the surface as you get stronger.'],
+  ['Push-up',3,15,'reps','Elbows about 45°, full range, body straight. Stop before form breaks.'],
+  ['Pike Push-up',3,10,'reps','Hips high; head travels between hands. Controlled lowering.'],
+  ['Elevated Pike Push-up',3,8,'reps','Feet elevated. Keep shoulders loaded and lower slowly.'],
+  ['Pseudo Planche Push-up',3,8,'reps','Lean shoulders past hands, protract, hollow body, press with control.']]},
+ pull:{name:'Pull',type:'strength',stages:[
+  ['Dead Hang',3,30,'s','Use an active hang when possible; grip only while shoulders stay controlled.'],
+  ['Scapular Pull-up',3,8,'reps','Arms straight. Move through the shoulder blades without bending elbows.'],
+  ['Negative Pull-up',3,5,'reps','Start above the bar and lower for about five controlled seconds.'],
+  ['Chin-up',3,5,'reps','Full range with controlled lowering. Avoid swinging.'],
+  ['Pull-up',3,8,'reps','Overhand grip, full range, no kipping.']]},
+ legs:{name:'Legs',type:'strength',stages:[
+  ['Squat',3,20,'reps','Heels down, knees track with toes, controlled depth.'],
+  ['Split Squat',3,10,'leg','Drop mostly straight down. Reps are per leg.'],
+  ['Bulgarian Split Squat',3,10,'leg','Rear foot elevated. Control the bottom position.'],
+  ['Assisted Pistol',3,5,'leg','Use a stable support and gradually reduce assistance.'],
+  ['Pistol Squat',3,5,'leg','Full single-leg squat with heel down and controlled depth.']]},
+ core:{name:'Core',type:'iso',stages:[
+  ['Hollow Hold',3,30,'s','Lower back stays connected to floor; regress if you arch.'],
+  ['Tuck L-sit',3,15,'s','Push down hard, lift hips, knees tucked.'],
+  ['One-Leg L-sit',3,12,'s','One leg straight, one tucked; alternate sides.'],
+  ['L-sit',3,10,'s','Both legs straight and parallel; shoulders depressed.']]},
+ planche:{name:'Planche',type:'skill',stages:[
+  ['Planche Lean',4,20,'s','Protract and lean gradually. Wrist discomfort is a stop signal.'],
+  ['Tuck Planche',4,10,'s','Feet off floor, knees tucked, arms straight, shoulders controlled.'],
+  ['Advanced Tuck Planche',4,8,'s','Increase lever length while keeping hips level.'],
+  ['Straddle Planche',4,5,'s','Wide legs, horizontal body. Long-term strength skill.']]}
+};
 const DAY={A:['handstand','planche','push','core'],B:['handstand','pull','legs','core']};
-const PREP=[['Wrist prep · 2 min','Circles, finger pulls, palm-down and palm-up rocks. Non-negotiable for handstand and planche.'],
- ['Overhead shoulder opener · 1 min','Arms overhead against a wall, ribs down, gently press the chest toward the floor. Open shoulders make a straight handstand line possible.'],
- ['Shoulder switch-on · 2 sets of 10','Scapular push-ups: straight arms, push tall, sink, repeat.'],
- ['Hollow rocks · 2 sets of 10','Keep the hollow shape and rock without losing it.']];
-const CLEAN=3, MISS=3, KEY='ascent_v1';
+const MODE={strength:'Strength',iso:'Isometric',skill:'Skill'};
+const idx=(k,name)=>TRACKS[k].stages.findIndex(s=>s[0]===name);
+const GATES=[['push','Pseudo Planche Push-up'],['core','One-Leg L-sit'],['handstand','Chest-to-Wall Hold']];
+const PREP=[['Wrist prep · 2 min','Circles, finger pulls, palm-down and palm-up rocks. Gentle, not painful.'],['Shoulder opener · 1 min','Overhead reach with ribs controlled; do not force range.'],['Scapular switch-on · 2×10','Straight-arm scapular push-ups.'],['Hollow rocks · 2×10','Keep the shape while rocking; stop if the low back loses position.']];
+const DEFSET={sound:true,tone:'chime',vol:'med',vibrate:true,count:true,ready:5,rest:90,auto:true,awake:true};
+const VOL={low:.35,med:.7,high:1};
 
-/* ---------- STATE ---------- */
+/* ================= STATE ================= */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const int=(v,lo,hi,d)=>{v=Number(v);return Number.isInteger(v)&&v>=lo&&v<=hi?v:d};
-const def=()=>({v:1,sessions:0,next:'A',planche:false,eased:'',tracks:Object.fromEntries(Object.keys(TRACKS).map(k=>[k,{stage:0,clean:0,miss:0}])),history:[],draft:{}});
-function sanitize(s){
-  if(!s||typeof s!=='object'||!s.tracks||typeof s.tracks!=='object')return null;
-  const o=def();
-  o.sessions=int(s.sessions,0,100000,0);o.next=s.next==='B'?'B':'A';o.planche=!!s.planche;o.eased=typeof s.eased==='string'?s.eased:'';
-  for(const k in TRACKS){const t=s.tracks[k]||{};o.tracks[k]={stage:int(t.stage,0,TRACKS[k].stages.length-1,0),clean:int(t.clean,0,CLEAN,0),miss:int(t.miss,0,MISS,0)}}
-  o.history=Array.isArray(s.history)?s.history.filter(h=>h&&typeof h==='object'&&h.entries&&typeof h.entries==='object').slice(0,500):[];
-  o.draft=s.draft&&typeof s.draft==='object'?s.draft:{};
-  return o;
-}
+const def=()=>({v:3,sessions:0,next:'A',planche:false,tracks:Object.fromEntries(Object.keys(TRACKS).map(k=>[k,{stage:0,clean:0,miss:0,bests:{},prov:0}])),history:[],draft:{},deloads:0,lastDeloadSession:0,startedAt:null,settings:{...DEFSET}});
+const ymd=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function cleanSettings(x){const o={...DEFSET,readyBy:{}};if(x&&typeof x==='object'){if(x.readyBy&&typeof x.readyBy==='object')for(const k in TRACKS){const v=x.readyBy[k];if(Number.isInteger(v)&&v>=0&&v<=30)o.readyBy[k]=v}['sound','vibrate','count','auto','awake'].forEach(k=>{if(typeof x[k]==='boolean')o[k]=x[k]});if(['chime','bell','beep','alarm'].includes(x.tone))o.tone=x.tone;if(['low','med','high'].includes(x.vol))o.vol=x.vol;if([0,3,5,10].includes(x.ready))o.ready=x.ready;if([60,90,120,180].includes(x.rest))o.rest=x.rest}return o}
+function cleanHist(h){
+ if(!h||typeof h!=='object'||typeof h.date!=='string'||!/^\d{4}-\d{2}-\d{2}/.test(h.date)||!h.entries||typeof h.entries!=='object')return null;
+ const es={};
+ for(const k in h.entries){if(!TRACKS[k])continue;const e=h.entries[k];
+  if(!e||!Array.isArray(e.vals)||!e.vals.length||!e.vals.every(v=>Number.isFinite(v)&&v>=0)||!Number.isFinite(e.target))continue;
+  es[k]={stage:String(e.stage||''),type:String(e.type||''),vals:e.vals.map(Number),target:Number(e.target),unit:String(e.unit||'reps'),met:!!e.met,near:!!e.near,pain:!!e.pain,painLevel:Number(e.painLevel)||0,painArea:String(e.painArea||'none'),effort:String(e.effort||'moderate'),reps:e.reps===undefined?!!e.met:!!e.reps,formOk:e.formOk!==false}}
+ if(!Object.keys(es).length)return null;
+ return {n:Number(h.n)||0,day:h.day==='B'?'B':'A',date:h.date.slice(0,10),readiness:h.readiness&&typeof h.readiness==='object'?h.readiness:null,recovery:!!h.recovery,reduced:!!h.reduced,entries:es,notes:String(h.notes||'').slice(0,2000),prev:h.prev&&typeof h.prev==='object'&&h.prev.tracks&&typeof h.prev.tracks==='object'?h.prev:null,meta:h.meta&&typeof h.meta==='object'?h.meta:null}}
+function sanitize(x){
+ if(!x||typeof x!=='object'||!x.tracks)return null;
+ const o=def(),n=v=>Number.isInteger(v)&&v>=0?v:0;
+ o.sessions=n(x.sessions);o.next=x.next==='B'?'B':'A';o.planche=!!x.planche;o.deloads=n(x.deloads);o.lastDeloadSession=n(x.lastDeloadSession);
+ o.startedAt=typeof x.startedAt==='string'?x.startedAt:null;o.settings=cleanSettings(x.settings);
+ for(const k in TRACKS){const t=x.tracks[k]||{},b={};if(t.bests&&typeof t.bests==='object')for(const s in t.bests){const v=Number(t.bests[s]);if(isFinite(v)&&v>0)b[s]=v}
+  o.tracks[k]={stage:Math.max(0,Math.min(TRACKS[k].stages.length-1,Number(t.stage)||0)),clean:Math.max(0,Math.min(CLEAN,Number(t.clean)||0)),miss:Math.max(0,Math.min(MISS,Number(t.miss)||0)),bests:b,prov:Math.max(0,Math.min(2,Number(t.prov)||0))}}
+ o.history=Array.isArray(x.history)?x.history.map(cleanHist).filter(Boolean).slice(0,500):[];
+ o.draft=x.draft&&typeof x.draft==='object'?x.draft:{};return o}
+/* v2 had no incline push-up stages: shift push stages so nobody lands on the wrong exercise */
+const mapPush=p=>{const s=Number(p.stage)||0;p.stage=s===0?((Number(p.clean)||0)>0?2:1):s+2};
 function load(){
-  let raw=null;
-  try{raw=localStorage.getItem(KEY);if(!raw)return def();const s=sanitize(JSON.parse(raw));if(s)return s}catch(e){}
-  try{if(raw)localStorage.setItem(KEY+'_corrupt',raw)}catch(e){}  /* never overwrite unreadable data */
-  return def();
-}
+ try{
+  const raw=localStorage.getItem(KEY);if(raw)return sanitize(JSON.parse(raw))||def();
+  const old=localStorage.getItem(OLD);
+  if(old){const x=JSON.parse(old);if(x&&x.tracks&&x.tracks.push){
+   if(Array.isArray(x.history))x.history.forEach(h=>{if(h&&h.prev&&h.prev.tracks&&h.prev.tracks.push)mapPush(h.prev.tracks.push)});
+   mapPush(x.tracks.push);x.tracks.push.clean=0;x.tracks.push.miss=0;
+   const o=sanitize(x);if(o){o.v=3;return o}}}
+ }catch(e){}
+ return def()}
 let S=load();
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Storage full or blocked. Export a backup.')}}
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2800)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Storage unavailable. Export a backup.')}}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),3200)}
 const unit=(u,n)=>u==='s'?n+'s':u==='leg'?n+' reps/leg':n+' reps';
-function checkLayoff(){
-  if(!S.history.length)return;
-  const last=S.history[0].date,gap=Math.floor((Date.now()-new Date(last))/86400000);
-  if(!last||S.eased===last||isNaN(gap)||gap<14)return;
-  const back=gap>=28;
-  for(const k in S.tracks){const t=S.tracks[k];t.clean=0;t.miss=0;if(back&&t.stage>0)t.stage--}
-  S.eased=last;save();
-  setTimeout(()=>toast(gap+' days off: '+(back?'every track eased back one stage. ':'clean-session counts reset. ')+'Do the first session at about 70% of the usual reps or holds.'),400);
-}
-const gates=()=>[['Push: reach Pseudo Planche Push-up (Elevated Pike done)',S.tracks.push.stage>=3],['Core: Tuck L-sit 15s done (reach One-Leg L-sit)',S.tracks.core.stage>=2],['Handstand: Chest-to-Wall Hold unlocked',S.tracks.handstand.stage>=2]];
-function checkUnlock(){if(!S.planche&&gates().every(g=>g[1])){S.planche=true;return true}return false}
+function dateGap(){if(!S.history.length)return 0;const a=new Date(S.history[0].date+'T12:00:00'),b=new Date(ymd()+'T12:00:00');return Math.max(0,Math.round((b-a)/86400000))}
+const plancheGate=()=>GATES.every(([k,name])=>S.tracks[k].stage>=idx(k,name));
+function maybePlanche(){if(!S.planche&&plancheGate()){S.planche=true;return true}return false}
 const today=()=>DAY[S.next].filter(k=>k!=='planche'||S.planche);
+/* all three inputs use 1 = worst, 3 = best (Soreness: 1 = High, 3 = Low), so they add directly. Range 3-9. */
+const readyLevel=r=>{const sc=Number(r.sleep)+Number(r.energy)+Number(r.soreness);return sc<=4?'low':sc>=8?'high':'normal'};
+function readiness(){return readyLevel(S.draft.readiness||{sleep:2,energy:2,soreness:2})}
+const isReduced=()=>!!S.draft.recovery||readiness()==='low'||dateGap()>=14;
+const needSets=(k,st)=>TRACKS[k].type==='skill'?Math.max(1,Math.ceil(st[1]*.6)):st[1];
+const FORMTXT={planche:'elbows locked, scapulae protracted, hips level, no collapsing',core:'elbows locked, shoulders pressed down, hips off the floor, legs controlled'};
+const needsForm=(k,stage)=>k==='planche'||(k==='core'&&stage>=1);
+function effectiveSets(T,t){const base=T.stages[t.stage][1],gap=dateGap();if(S.draft.recovery||gap>=28)return Math.max(1,Math.min(base-1,Math.round(base*.7)));if(readiness()==='low'||gap>=14)return Math.max(1,base-1);return base}
+const deloadDue=()=>S.sessions>0&&S.sessions-S.lastDeloadSession>=12;
+const readyFor=k=>{const v=(S.settings.readyBy||{})[k];return v===undefined?S.settings.ready:v};
+const opts=(list,cur)=>list.map(([v,l])=>`<option value="${v}"${String(v)===String(cur)?' selected':''}>${l}</option>`).join('');
 
-/* ---------- TODAY ---------- */
+/* ================= TODAY ================= */
 function renderToday(){
-  $('tag').textContent='Session '+(S.sessions+1);
-  const ks=today();
-  let h=`<div class="day"><b>Day ${S.next}</b><span>${ks.map(k=>TRACKS[k].name).join(' · ')}</span></div>
-  <div class="rest"><button data-r="90">1:30</button><div id="rt">–</div><button data-r="150">2:30</button><button data-r="210">3:30</button></div>
-  <div class="card prep"><h2>Prep (do first)</h2>${PREP.map((p,i)=>`<label><input type="checkbox" data-p="${i}"${S.draft['p'+i]?' checked':''}><span>${p[0]}<small>${p[1]}</small></span></label>`).join('')}</div>`;
-  ks.forEach(k=>{
-    const T=TRACKS[k],t=S.tracks[k],st=T.stages[t.stage],[n,sets,tg,u,cue]=st;
-    h+=`<div class="blk${k==='planche'?' pl':''}" data-k="${k}">
-      <div class="bh"><div><div class="trk">${T.name.toUpperCase()} · STAGE ${t.stage+1}/${T.stages.length}</div><div class="big">${sets}×${unit(u,tg)}</div><div class="nm">${esc(n)}</div></div>
-      <div><div class="sub">Clean sessions</div><div class="pips">${Array.from({length:CLEAN},(_,i)=>`<i class="${i<t.clean?'f':''}"></i>`).join('')}</div></div></div>
-      <div class="cue">${esc(cue)}</div>
-      <div class="sets">${Array.from({length:sets},(_,i)=>`<label>Set ${i+1}<input type="number" inputmode="numeric" min="0" step="1" data-k="${k}" data-i="${i}" placeholder="${tg}" value="${S.draft[k+'_'+i]??''}"></label>`).join('')}</div>
-      <label class="pain"><input type="checkbox" data-pain="${k}"${S.draft['pain_'+k]?' checked':''}> Joint pain during this exercise</label>
-      <div class="err" id="e_${k}"></div></div>`;
-  });
-  h+=`<div class="card"><label class="sub" for="notes">Notes: sleep, wrists, what felt off</label><textarea id="notes">${esc(S.draft.notes||'')}</textarea></div>
-  <button class="go" id="done">COMPLETE SESSION</button>
-  <p class="sub" style="text-align:center;margin-top:10px">Enter every set. Hit the target on all sets for ${CLEAN} sessions in a row to move up. Pain in a joint: stop that exercise.</p>`;
-  $('v-today').innerHTML=h;
-}
-$('v-today').addEventListener('input',e=>{
-  const el=e.target;
-  if(el.dataset.i!==undefined)S.draft[el.dataset.k+'_'+el.dataset.i]=el.value;
-  else if(el.dataset.pain!==undefined)S.draft['pain_'+el.dataset.pain]=el.checked;
-  else if(el.dataset.p!==undefined)S.draft['p'+el.dataset.p]=el.checked;
-  else if(el.id==='notes')S.draft.notes=el.value;
-  else return;
-  save();
-});
+ const ks=today(),r=readiness(),gap=dateGap(),rd=S.draft.readiness||{sleep:2,energy:2,soreness:2};
+ $('tag').textContent='Session '+(S.sessions+1);
+ let h=`<div class="day"><div><b>Day ${S.next}</b><span style="display:block;text-align:left">${ks.map(k=>TRACKS[k].name).join(' · ')}</span></div><div><span>~35–50 min</span></div></div>`;
+ if(!S.sessions&&!S.startedAt)h+=`<div class="banner"><b>Start with your baseline.</b><br><span class="sub">Ascent can place you at a sensible starting stage instead of assuming everyone is a beginner.</span><button class="btn primary" id="openSetup">RUN 2–4 MIN BASELINE</button></div>`;
+ if(gap>=14)h+=`<div class="banner warn"><b>Return-from-break mode</b><br><span class="sub">${gap} days since your last session. Volume is reduced today and this session earns no progression credit. Your stage stays put; the normal step-back rule applies only if you miss targets later.</span></div>`;
+ if(S.draft.recovery)h+=`<div class="banner warn"><b>Recovery block active</b><br><span class="sub">Reduced volume. No stage progress this session.</span><button class="btn small" id="cancelRecovery" style="margin-top:8px">Cancel recovery</button></div>`;
+ else if(deloadDue())h+=`<div class="banner warn"><b>Recovery session recommended.</b><br><span class="sub">12+ sessions since the last recovery block. Reduce volume, keep technique crisp; this session will not advance stages.</span><button class="btn yellow" id="startRecovery">USE RECOVERY VOLUME</button></div>`;
+ h+=`<div class="card"><h2>Readiness</h2><p class="sub">Quick check. It changes today's volume, not your long-term stage.</p><div class="readiness"><label>Sleep<select data-rd="sleep">${opts([[1,'Poor'],[2,'Okay'],[3,'Good']],rd.sleep)}</select></label><label>Energy<select data-rd="energy">${opts([[1,'Low'],[2,'Normal'],[3,'High']],rd.energy)}</select></label><label>Soreness<select data-rd="soreness">${opts([[1,'High'],[2,'Medium'],[3,'Low']],rd.soreness)}</select></label></div><p class="notice">Today: <b>${isReduced()?'Reduced volume · no progression credit':r==='high'?'Full volume':'Normal volume'}</b></p></div>`;
+ h+=`<div class="restbar"><span>REST</span><button data-rest="60">1:00</button><button data-rest="90">1:30</button><button data-rest="120">2:00</button><button data-rest="180">3:00</button></div>`;
+ h+=`<div class="card prep"><h2>Prep</h2>${PREP.map((p,i)=>`<label><input type="checkbox" data-p="${i}" ${S.draft['p'+i]?'checked':''}><span>${p[0]}<small>${p[1]}</small></span></label>`).join('')}</div>`;
+ ks.forEach(k=>{
+  const T=TRACKS[k],t=S.tracks[k],st=T.stages[t.stage],sets=effectiveSets(T,t),target=st[2],u=st[3];
+  const last=S.history.find(x=>x.entries&&x.entries[k]&&x.entries[k].stage===st[0]),best=t.bests[t.stage];
+  const info=[last?'Last: '+last.entries[k].vals.join(' / '):'',best?'Best set: '+unit(u,best):''].filter(Boolean).join(' · ');
+  const pl0=+(S.draft['pl_'+k]||0),painOpen=pl0>0||!!S.draft['pain_'+k]||(S.draft['pa_'+k]||'none')!=='none';
+  let cells='';for(let i=0;i<sets;i++){const v=S.draft[k+'_'+i]??'';cells+=`<div class="set"><label>Set ${i+1}<input type="number" inputmode="numeric" min="0" max="${u==='s'?600:200}" data-k="${k}" data-i="${i}" placeholder="${target}" value="${esc(v)}"></label>${u==='s'?`<button class="go" data-hold="${k}:${i}" aria-label="Start timer for set ${i+1}">▶ Timer</button>`:''}</div>`}
+  h+=`<div class="exercise${k==='planche'?' planche':''}" data-k="${k}"><div class="exhead"><div><div class="track">${T.name.toUpperCase()} · STAGE ${t.stage+1}/${T.stages.length}</div><div class="big">${sets}×${unit(u,target)}</div><div class="exname">${esc(st[0])}</div></div><div style="text-align:right"><span class="mode">${MODE[T.type]}</span><div class="pips" style="justify-content:flex-end">${Array.from({length:CLEAN},(_,i)=>`<i class="${i<t.clean?'f':''}"></i>`).join('')}</div><small class="muted">${t.clean}/${CLEAN} clean</small></div></div><div class="cue">${esc(st[4])}</div>${info?`<div class="sub" style="margin-bottom:8px"><b>${esc(info)}</b></div>`:''}${T.type==='skill'?`<div class="sub" style="margin-bottom:8px">Counts as clean when ${Math.min(needSets(k,st),sets)} of ${sets} sets reach ${unit(u,target)}.</div>`:''}${t.prov>0?`<div class="sub" style="margin-bottom:8px"><b>Placement check ${3-t.prov} of 2.</b> This stage was estimated from your baseline. A clear miss moves you back one stage right away.</div>`:''}<div class="sets">${cells}</div>${needsForm(k,t.stage)?`<label class="painline" style="margin:9px 0 0"><input type="checkbox" data-form="${k}" ${S.draft['form_'+k]?'checked':''}> Self-check: form was acceptable on the sets that hit the target (${FORMTXT[k]})</label>`:''}<div class="quality" style="grid-template-columns:1fr"><label class="sub">Effort<select data-q="${k}">${opts([['easy','Easy'],['moderate','Moderate'],['hard','Hard'],['max','Near max']],S.draft['q_'+k]||'moderate')}</select></label></div><details class="dt"${painOpen?' open':''}><summary>Pain &amp; ${u==='s'?'timer ':''}settings${painOpen?' ●':''}</summary><div class="quality"><label class="sub">Pain level<select data-pl="${k}">${opts([[0,'None'],[1,'Mild'],[2,'Moderate'],[3,'Sharp / severe']],S.draft['pl_'+k]||0)}</select></label><label class="sub">Pain area<select data-pa="${k}">${opts([['none','None'],['Wrist','Wrist'],['Elbow','Elbow'],['Shoulder','Shoulder'],['Knee','Knee'],['Other','Other']],S.draft['pa_'+k]||'none')}</select></label></div><div style="margin-top:8px"><label class="painline" style="margin-top:0"><input type="checkbox" data-pain="${k}" ${S.draft['pain_'+k]?'checked':''}> Pain affected the exercise</label></div>${u==='s'?`<div class="readyrow"><label for="rdy_${k}">Get ready before hold</label><input id="rdy_${k}" type="number" inputmode="numeric" min="0" max="30" data-rdy="${k}" value="${readyFor(k)}"><span>sec</span></div>`:''}</details><div class="sub" id="e_${k}" style="display:none;color:var(--bad);margin-top:6px"></div></div>`});
+ h+=`<div class="card"><div class="field"><label for="notes">Session notes</label><textarea id="notes" placeholder="Sleep, wrists, what felt strong or off…">${esc(S.draft.notes||'')}</textarea></div></div><button class="btn primary complete" id="done">COMPLETE SESSION</button><p class="notice">Progress requires repeatable clean performance. Skill work is judged more strictly than raw numbers.</p>`;
+ $('v-today').innerHTML=h}
+function persistInput(e){const el=e.target,d=el.dataset;
+ if(d.i!==undefined)S.draft[d.k+'_'+d.i]=el.value;
+ else if(d.pain)S.draft['pain_'+d.pain]=el.checked;
+ else if(d.p!==undefined)S.draft['p'+d.p]=el.checked;
+ else if(el.id==='notes')S.draft.notes=el.value;
+ else if(d.rd){S.draft.readiness=S.draft.readiness||{sleep:2,energy:2,soreness:2};S.draft.readiness[d.rd]=+el.value}
+ else if(d.q)S.draft['q_'+d.q]=el.value;
+ else if(d.pl)S.draft['pl_'+d.pl]=el.value;
+ else if(d.pa)S.draft['pa_'+d.pa]=el.value;
+ else if(d.form)S.draft['form_'+d.form]=el.checked;
+ else if(d.rdy){const v=Math.round(Number(el.value));S.settings.readyBy=S.settings.readyBy||{};if(el.value===''||!isFinite(v)||v<0||v>30)delete S.settings.readyBy[d.rdy];else S.settings.readyBy[d.rdy]=v}
+ else return;
+ save()}
+const isFinalSet=(k,i)=>{const ks=today();return k===ks[ks.length-1]&&i===effectiveSets(TRACKS[k],S.tracks[k])-1};
+$('v-today').addEventListener('focusin',e=>{if(e.target.dataset&&e.target.dataset.i!==undefined)e.target.dataset.was=e.target.value});
+$('v-today').addEventListener('input',persistInput);
+$('v-today').addEventListener('change',e=>{
+ persistInput(e);const d=e.target.dataset;
+ if(d.rd)renderToday();
+ if(d.i!==undefined&&S.settings.auto&&d.was===''&&e.target.value!==''&&Number.isInteger(+e.target.value)&&!isFinalSet(d.k,+d.i)&&(!TM.mode||TM.mode==='done'))startRest(S.settings.rest);
+ if(d.i!==undefined)d.was=e.target.value});
 $('v-today').addEventListener('click',e=>{
-  if(e.target.id==='done')return complete();
-  const r=e.target.dataset.r;if(r)startRest(+r,e.target);
-});
-let rTimer=null;
-function startRest(sec,btn){
-  clearInterval(rTimer);
-  document.querySelectorAll('.rest button').forEach(b=>b.classList.remove('run'));
-  btn.classList.add('run');
-  const end=Date.now()+sec*1000;   /* timestamp-based: survives throttling */
-  const tick=()=>{
-    const left=Math.ceil((end-Date.now())/1000),d=$('rt');if(!d)return clearInterval(rTimer);
-    if(left<=0){clearInterval(rTimer);d.textContent='GO';btn.classList.remove('run');if(navigator.vibrate)navigator.vibrate([250,100,250]);return}
-    d.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
-  };
-  tick();rTimer=setInterval(tick,250);
-}
+ const b=e.target.closest('button');if(!b)return;
+ if(b.id==='done')complete();
+ else if(b.id==='openSetup')openSetup();
+ else if(b.id==='startRecovery'){S.draft.recovery=true;save();renderToday();toast('Recovery volume enabled')}
+ else if(b.id==='cancelRecovery'){delete S.draft.recovery;save();renderToday()}
+ else if(b.dataset.rest)startRest(+b.dataset.rest);
+ else if(b.dataset.hold){const[k,i]=b.dataset.hold.split(':');startHold(k,+i)}});
 
-/* ---------- COMPLETE SESSION ---------- */
+/* ================= COMPLETE SESSION ================= */
+function validateEntries(){
+ const entries={};let ok=true;
+ for(const k of today()){
+  const T=TRACKS[k],t=S.tracks[k],st=T.stages[t.stage],sets=effectiveSets(T,t),vals=[];let bad=false;
+  for(let i=0;i<sets;i++){const inp=document.querySelector(`input[data-k="${k}"][data-i="${i}"]`),raw=inp?inp.value.trim():'',v=Number(raw);
+   if(raw===''||!Number.isInteger(v)||v<0||v>(st[3]==='s'?600:200)){if(inp)inp.classList.add('bad');bad=true}else{inp.classList.remove('bad');vals.push(v)}}
+  const er=$('e_'+k);er.style.display=bad?'block':'none';er.textContent='Enter a whole number for every set (0 if missed).';
+  if(bad){ok=false;continue}
+  const pl=+(S.draft['pl_'+k]||0),pain=!!S.draft['pain_'+k]||pl>0;
+  const need=Math.min(needSets(k,st),sets),hit=vals.filter(v=>v>=st[2]).length,formOk=!needsForm(k,t.stage)||!!S.draft['form_'+k],reps=hit>=need,met=reps&&formOk,near=!reps&&T.type!=='skill'&&vals.every(v=>v>=Math.ceil(st[2]*NEAR));
+  entries[k]={stage:st[0],type:T.type,vals,target:st[2],unit:st[3],met,near,pain,painLevel:pl,painArea:S.draft['pa_'+k]||'none',effort:S.draft['q_'+k]||'moderate',need,reps,formOk}}
+ if(!ok){const first=document.querySelector('input.bad');if(first)first.scrollIntoView({block:'center',behavior:'smooth'})}
+ return ok?entries:null}
 function complete(){
-  const ks=today(),entries={};let ok=true;
-  ks.forEach(k=>{
-    const st=TRACKS[k].stages[S.tracks[k].stage],ins=[...document.querySelectorAll(`input[data-k="${k}"]`)],vals=[];let bad=false;
-    ins.forEach(inp=>{
-      const raw=inp.value.trim(),v=Number(raw);
-      if(raw===''||!Number.isInteger(v)||v<0||v>(st[3]==='s'?600:200)){bad=true;inp.classList.add('bad')}else{inp.classList.remove('bad');vals.push(v)}
-    });
-    const eb=$('e_'+k);eb.style.display=bad?'block':'none';eb.textContent='Enter a whole number for every set (0 if you missed it).';
-    if(bad)ok=false;else entries[k]={stage:st[0],vals,target:st[2],unit:st[3],met:vals.every(v=>v>=st[2]),pain:!!(document.querySelector(`input[data-pain="${k}"]`)||{}).checked};
-  });
-  if(!ok)return toast('Fill in every set first');
-  const prev={tracks:JSON.parse(JSON.stringify(S.tracks)),planche:S.planche},msgs=[];
-  ks.forEach(k=>{
-    const t=S.tracks[k],T=TRACKS[k],e=entries[k];
-    if(e.pain){t.clean=0;msgs.push(T.name+': pain logged, no progress this session. Cut volume, rest 2 to 3 days; see a physio if it persists')}
-    else if(e.met){t.miss=0;t.clean++;
-      if(t.clean>=CLEAN){t.clean=0;if(t.stage<T.stages.length-1){t.stage++;msgs.push(T.name+' up: '+T.stages[t.stage][0])}else msgs.push(T.name+' mastered')}
-    }else{t.clean=0;t.miss++;
-      if(t.miss>=MISS){t.miss=0;if(t.stage>0){t.stage--;msgs.push(T.name+' stepped back to '+T.stages[t.stage][0]+' to rebuild')}else msgs.push(T.name+': keep the target and rest longer')}
-    }
-  });
-  if(checkUnlock())msgs.push('Planche track unlocked');
-  S.history.unshift({n:S.sessions+1,day:S.next,date:new Date().toISOString().slice(0,10),entries,notes:(S.draft.notes||'').trim(),prev});
-  S.sessions++;S.next=S.next==='A'?'B':'A';S.draft={};save();
-  toast(msgs.length?msgs.join(' · '):'Session logged');
-  renderAll();window.scrollTo(0,0);
-}
-function undo(){
-  const h=S.history[0];if(!h||!confirm('Undo session #'+h.n+'? Stage progress reverts and it becomes today\'s session again.'))return;
-  const s=sanitize({...S,tracks:h.prev.tracks});if(!s)return;
-  S.tracks=s.tracks;S.planche=!!h.prev.planche;S.history.shift();S.sessions=Math.max(0,S.sessions-1);S.next=h.day;save();renderAll();toast('Session undone');
-}
+ const entries=validateEntries();if(!entries){toast('Fill every set before completing');return}
+ const prev={tracks:JSON.parse(JSON.stringify(S.tracks)),planche:S.planche},meta={deloads:S.deloads,last:S.lastDeloadSession},msgs=[];
+ const reduced=isReduced();
+ for(const k of today()){
+  const t=S.tracks[k],T=TRACKS[k],e=entries[k];let dropped=false;
+  t.bests[t.stage]=Math.max(t.bests[t.stage]||0,...e.vals);
+  if(e.pain){t.clean=0;t.miss=0;msgs.push(T.name+': pain logged, no progression')}
+  else if(reduced){msgs.push(T.name+': reduced volume, logged with no progression credit')}
+  else if(t.prov>0&&!e.met&&!e.near&&!(e.reps&&!e.formOk)&&t.stage>0){t.stage--;t.clean=0;t.miss=0;t.prov=2;dropped=true;msgs.push(T.name+' placement adjusted → '+T.stages[t.stage][0]+' (re-checking)')}
+  else if(e.met){t.miss=0;
+   if(e.effort==='max'){t.clean=Math.min(CLEAN-1,t.clean+1);msgs.push(T.name+': target met near max, repeat before advancing')}
+   else{t.clean++;if(t.clean>=CLEAN){t.clean=0;if(t.stage<T.stages.length-1){t.stage++;msgs.push(T.name+' → '+T.stages[t.stage][0])}else msgs.push(T.name+': final stage maintained')}}}
+  else if(e.reps&&!e.formOk){t.clean=0;msgs.push(T.name+': target reached but form not confirmed, repeat')}
+  else if(e.near){t.clean=0;msgs.push(T.name+': very close, repeat the target (no penalty)')}
+  else{t.clean=0;t.miss++;
+   if(t.miss>=MISS){t.miss=0;if(t.stage>0){t.stage--;msgs.push(T.name+' stepped back to '+T.stages[t.stage][0])}else msgs.push(T.name+': first stage, keep the target and rest longer')}}
+  if(!e.pain&&!reduced&&!dropped&&t.prov>0)t.prov--;
+  if(t.stage===0)t.prov=0}
+ if(maybePlanche())msgs.push('Planche foundation unlocked');
+ S.history.unshift({n:S.sessions+1,day:S.next,date:ymd(),readiness:S.draft.readiness||null,recovery:!!S.draft.recovery,reduced,entries,notes:(S.draft.notes||'').trim(),prev,meta});
+ S.sessions++;if(S.draft.recovery){S.deloads++;S.lastDeloadSession=S.sessions}
+ S.next=S.next==='A'?'B':'A';S.draft={};save();endTimer();askPersist();
+ toast(msgs.join(' · ')||'Session logged');renderAll();show('progress')}
+function askPersist(){try{if(navigator.storage&&navigator.storage.persist&&!localStorage.getItem('ascent_persist_asked')){localStorage.setItem('ascent_persist_asked','1');navigator.storage.persist().catch(()=>{})}}catch(e){}}
+function undoLast(){
+ const h=S.history[0];if(h&&!h.prev){toast('This older record has no undo data');return}
+ if(!h||!confirm('Undo session #'+h.n+'? Stage progress reverts and your numbers come back so you can fix them.'))return;
+ if(h.prev){S.tracks=sanitize({tracks:h.prev.tracks}).tracks;S.planche=!!h.prev.planche}
+ if(h.meta){S.deloads=h.meta.deloads;S.lastDeloadSession=h.meta.last}else if(h.recovery)S.deloads=Math.max(0,S.deloads-1);
+ S.sessions=Math.max(0,S.sessions-1);S.next=h.day==='B'?'B':'A';S.history.shift();S.draft={};
+ for(const k in h.entries){const e=h.entries[k];e.vals.forEach((v,i)=>S.draft[k+'_'+i]=String(v));S.draft['q_'+k]=e.effort;S.draft['pl_'+k]=String(e.painLevel||0);S.draft['pa_'+k]=e.painArea||'none';S.draft['pain_'+k]=!!e.pain;if(e.formOk)S.draft['form_'+k]=true}
+ if(h.readiness)S.draft.readiness=h.readiness;if(h.recovery)S.draft.recovery=true;if(h.notes)S.draft.notes=h.notes;
+ save();renderAll();show('today');toast('Session undone')}
 
-/* ---------- ROADMAP ---------- */
-function phase(){return S.planche?3:S.tracks.handstand.stage>=3?2:1}
+/* ================= PROGRESS / ROADMAP / LOG / GUIDE ================= */
+function calcStreak(){if(!S.history.length||dateGap()>4)return 0;let n=1;for(let i=1;i<S.history.length;i++){const d=(new Date(S.history[i-1].date)-new Date(S.history[i].date))/86400000;if(d<=4)n++;else break}return n}
+const pct=x=>{const es=Object.values(x.entries).filter(e=>e.vals&&e.vals.length&&e.target);if(!es.length)return 0;return Math.round(es.reduce((a,e)=>a+Math.min(1,e.vals.reduce((s,v)=>s+v,0)/(e.vals.length*e.target)),0)/es.length*100)};
+function renderProgress(){
+ const days=S.history.slice(0,8).reverse(),streak=calcStreak();
+ let h=`<div class="hero"><small>YOUR CURRENT ASCENT</small><b>${S.sessions} sessions</b><span class="sub" style="color:#c1c7d0">${streak?streak+' in a row · ':''}Day ${S.next} next</span></div><div class="metrics">`;
+ for(const k of ['handstand','push','pull','legs','core','planche']){if(k==='planche'&&!S.planche)continue;
+  const T=TRACKS[k],t=S.tracks[k],st=T.stages[t.stage];
+  h+=`<div class="metric"><small>${T.name}</small><b>${esc(st[0])}</b><span class="sub">Stage ${t.stage+1}/${T.stages.length} · best ${unit(st[3],t.bests[t.stage]||0)}</span><div class="progressline"><i style="width:${(t.stage+1)/T.stages.length*100}%"></i></div></div>`}
+ h+=`</div><div class="card"><h2>Target completion</h2><p class="sub">Share of prescribed reps/holds you completed, last ${days.length||0} sessions. Beating your last numbers moves this bar even before a stage-up. Faded bars marked * were reduced-volume days, measured against that day's smaller target.</p><div class="chart">${days.length?days.map(x=>{const p=pct(x),rd=x.reduced||x.recovery;return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;align-items:center"><small class="sub">${p}%${rd?'*':''}</small><div class="bar" title="Session ${x.n}: ${p}%${rd?' (reduced volume)':''}" style="width:100%;flex:none;height:${Math.max(4,p)*.8}%${rd?';opacity:.4':''}"></div></div>`}).join(''):'<span class="sub">Complete a session to see this.</span>'}</div></div>`;
+ h+=`<div class="card"><h2>Training health</h2><div class="grid2"><div class="stat"><b>${S.deloads}</b><span>Recovery blocks</span></div><div class="stat"><b>${S.history.filter(x=>Object.values(x.entries).some(e=>e.pain)).length}</b><span>Pain-flagged sessions</span></div></div></div>`;
+ $('v-progress').innerHTML=h}
 function renderRoad(){
-  const P=[['Phase 1','Build the base: wrist prep, hollow body, pike strength, wall handstand, first pull-ups. About 8 to 12 weeks.'],
-   ['Phase 2','Learn the skills: freestanding handstand, tuck to full L-sit, strict pull-up. Months 3 to 6.'],
-   ['Phase 3','Planche: lean, tuck, advanced tuck, straddle. Starts once the base is proven; expect a year or more to straddle.']];
-  let h=`<h2>Route</h2><div class="card">${P.map((p,i)=>`<div class="ph${phase()===i+1?' cur':''}"><em>${p[0]}</em><span>${p[1]}</span></div>`).join('')}</div>`;
-  for(const k in TRACKS){
-    const T=TRACKS[k],t=S.tracks[k],locked=k==='planche'&&!S.planche;
-    h+=`<div class="card${locked?' lock':''}"><h2>${T.name}${locked?' (locked)':''}</h2>`;
-    if(locked)h+=`<p class="req">Unlocks when your base is ready. This protects wrists and shoulders.</p><p class="req">${gates().map(g=>g[1]?`<b>✓ ${g[0]}</b>`:`<s>○ ${g[0]}</s>`).join('<br>')}</p>`;
-    else T.stages.forEach((s,i)=>{h+=`<div class="st ${i<t.stage?'done':i===t.stage?'cur':''}"><span class="d"></span>${esc(s[0])}<span class="t">${s[1]}×${unit(s[3],s[2])}</span></div>`});
-    h+='</div>';
-  }
-  $('v-road').innerHTML=h;
-}
-
-/* ---------- LOG / DATA ---------- */
+ let h='<h2>Roadmap</h2><div class="card"><p class="sub">Current stage is highlighted. Gates are program benchmarks, not universal prerequisites.</p></div>';
+ [['Foundation','Build wrist/shoulder tolerance, basic pushing, pulling, legs and core.'],['Skill acquisition','Repeatable handstand, L-sit and strict pulling strength.'],['Planche development','Progressive straight-arm strength after the foundation gate.']].forEach((p,i)=>h+=`<div class="roadcard"><h3>Phase ${i+1} · ${p[0]}</h3><p class="sub">${p[1]}</p></div>`);
+ for(const k of Object.keys(TRACKS)){const T=TRACKS[k],t=S.tracks[k],locked=k==='planche'&&!S.planche;
+  h+=`<div class="roadcard ${locked?'locked':''}"><h2>${T.name}${locked?' · Locked':''}</h2>`;
+  if(locked)h+=`<p class="sub">Unlocks once you reach: ${GATES.map(([g,n])=>{const ok=S.tracks[g].stage>=idx(g,n);return `${ok?'✓ ':''}${TRACKS[g].name} · ${n}`}).join(', ')}.</p>`;
+  else h+=T.stages.map((s,i)=>`<div class="stage ${i<t.stage?'done':i===t.stage?'cur':''}"><span class="dot"></span><span>${esc(s[0])}</span><span class="target">${s[1]}×${unit(s[3],s[2])}</span></div>${i===t.stage?`<div class="sub" style="margin:-2px 0 8px 24px">Advance: ${CLEAN} clean sessions${T.type==='skill'?` (${needSets(k,s)} of ${s[1]} sets ≥ ${unit(s[3],s[2])})`:''}${needsForm(k,i)?' + form check':''}</div>`:''}`).join('');
+  h+='</div>'}
+ $('v-road').innerHTML=h}
 function renderLog(){
-  let h='<h2>Log</h2>';
-  h+=S.history.length?`<div class="card">${S.history.slice(0,60).map(x=>`<div class="he"><b>#${x.n} · Day ${esc(x.day)}</b> <span class="sub">${esc(x.date||'')}</span><br>${Object.keys(x.entries).filter(k=>TRACKS[k]).map(k=>{const e=x.entries[k];return `${TRACKS[k].name}: ${esc(e.stage)} ${(e.vals||[]).map(Number).join('/')} ${e.met?'✓':''}${e.pain?' ⚠':''}`}).join('<br>')}${x.notes?`<br><i class="sub">${esc(x.notes)}</i>`:''}</div>`).join('')}</div><button class="btn" id="undo">Undo last session</button>`:'<div class="card sub">No sessions yet. Complete Today\'s session to start the log.</div>';
-  h+=`<h2>Backup</h2><p class="sub" style="margin-bottom:8px">Progress lives only in this browser. Export after each stage-up.</p><div class="row"><button class="btn" id="exp">Export</button><button class="btn" id="imp">Import</button></div><input type="file" id="file" accept="application/json" hidden><button class="btn danger" id="reset">Reset all progress</button>`;
-  $('v-log').innerHTML=h;
-}
+ const st=S.settings,perm='Notification'in window?Notification.permission:'unsupported';
+ const yn=[[1,'On'],[0,'Off']];
+ let h='<h2>Log & settings</h2>';
+ h+=`<div class="card"><h2>Timer & alerts</h2><p class="sub">Hold timers (▶ Timer on time-based sets) and rest timers use these. Each timed exercise can also have its own get-ready time on its card (e.g. 6 s for handstand).</p><div class="readiness" style="grid-template-columns:1fr 1fr">
+ <label>Sound<select data-s="sound">${opts(yn,st.sound?1:0)}</select></label>
+ <label>Ringtone<select data-s="tone">${opts([['chime','Chime'],['bell','Bell'],['beep','Beep'],['alarm','Alarm']],st.tone)}</select></label>
+ <label>Volume<select data-s="vol">${opts([['low','Low'],['med','Medium'],['high','High']],st.vol)}</select></label>
+ <label>Vibration<select data-s="vibrate">${opts(yn,st.vibrate?1:0)}</select></label>
+ <label>Countdown beeps (last 3s)<select data-s="count">${opts(yn,st.count?1:0)}</select></label>
+ <label>Default get-ready<select data-s="ready">${opts([[0,'None'],[3,'3 s'],[5,'5 s'],[10,'10 s']],st.ready)}</select></label>
+ <label>Auto-start rest<select data-s="auto">${opts(yn,st.auto?1:0)}</select></label>
+ <label>Auto rest length<select data-s="rest">${opts([[60,'1:00'],[90,'1:30'],[120,'2:00'],[180,'3:00']],st.rest)}</select></label>
+ <label>Keep screen on during timers<select data-s="awake">${opts(yn,st.awake?1:0)}</select></label></div>
+ <div class="row"><button class="btn" id="testSound">TEST SOUND</button><button class="btn" id="notif" ${perm==='granted'||perm==='unsupported'||perm==='denied'?'disabled':''}>${perm==='granted'?'NOTIFICATIONS ON':perm==='denied'?'NOTIFICATIONS BLOCKED':perm==='unsupported'?'NOTIFICATIONS N/A':'ENABLE NOTIFICATIONS'}</button></div>
+ <p class="notice" style="text-align:left">Web apps can't ring while the phone is locked or the app is closed. Keep the app open with the screen on; the timer holds the screen awake for you.</p></div>`;
+ h+=`<div class="card"><div class="grid2"><div class="stat"><b>${S.sessions}</b><span>Total sessions</span></div><div class="stat"><b>${S.history.length?S.history[0].date:'—'}</b><span>Last session</span></div></div><button class="btn" id="undo" ${S.history.length&&S.history[0].prev?'':'disabled'}>UNDO LAST SESSION</button><button class="btn" id="rebase">RE-RUN BASELINE TEST</button><button class="btn" id="export">EXPORT BACKUP</button><button class="btn" id="importBtn">IMPORT BACKUP</button><input id="file" type="file" accept="application/json" hidden><button class="btn danger" id="reset">RESET ALL PROGRESS</button></div>`;
+ h+=`<div class="card"><h2>Session history</h2>${S.history.length?S.history.slice(0,60).map(x=>`<div class="history"><b>#${x.n} · Day ${esc(x.day)} · ${esc(x.date)}${x.recovery?' · recovery':x.reduced?' · reduced':''}</b><br><span class="sub">${Object.keys(x.entries).map(k=>{const e=x.entries[k];return `${TRACKS[k]?TRACKS[k].name:esc(k)}: ${e.vals.join('/')} ${e.met?'✓':e.near?'≈':''}${e.pain?' ⚠':''}`}).join(' · ')}</span>${x.notes?`<br><i class="sub">${esc(x.notes)}</i>`:''}</div>`).join(''):'<p class="sub">No sessions yet.</p>'}</div>`;
+ $('v-log').innerHTML=h}
 $('v-log').addEventListener('click',e=>{
-  const id=e.target.id;
-  if(id==='undo')undo();
-  if(id==='exp'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='ascent-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();toast('Backup downloaded')}
-  if(id==='imp')$('file').click();
-  if(id==='reset'&&confirm('Erase all sessions and progress?')){S=def();save();renderAll();toast('Progress reset')}
-});
+ const b=e.target.closest('button');if(!b)return;
+ if(b.id==='export'){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ascent-backup-'+ymd()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('Backup exported')}
+ else if(b.id==='importBtn')$('file').click();
+ else if(b.id==='reset'&&confirm('Erase all Ascent progress?')){S=def();save();endTimer();renderAll();show('today');toast('Progress reset');setTimeout(openSetup,350)}
+ else if(b.id==='undo')undoLast();
+ else if(b.id==='rebase')openSetup();
+ else if(b.id==='testSound'){unlock();play('ring');clearTimeout(testSound.t);testSound.t=setTimeout(stopAlarm,2600);buzz([200,100,200])}
+ else if(b.id==='notif'){try{Promise.resolve(Notification.requestPermission()).then(()=>renderLog())}catch(x){}}});
+function testSound(){}
 $('v-log').addEventListener('change',e=>{
-  if(e.target.id!=='file'||!e.target.files[0])return;
-  const r=new FileReader();
-  r.onload=()=>{try{const s=sanitize(JSON.parse(r.result));if(!s)throw 0;if(confirm('Replace current progress with this backup?')){S=s;save();renderAll();toast('Backup restored')}}catch(x){toast('Not a valid Ascent backup')}};
-  r.readAsText(e.target.files[0]);e.target.value='';
-});
+ const el=e.target;
+ if(el.dataset.s){const k=el.dataset.s,bools=['sound','vibrate','count','auto','awake'],nums=['ready','rest'];S.settings[k]=bools.includes(k)?el.value==='1':nums.includes(k)?+el.value:el.value;S.settings=cleanSettings(S.settings);save();
+  if(k==='tone'||k==='vol'){unlock();play('ring');clearTimeout(testSound.t);testSound.t=setTimeout(stopAlarm,1800)}return}
+ if(el.id!=='file'||!el.files[0])return;
+ const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(x&&x.tracks&&x.tracks.push&&(x.v||0)<3&&!('settings'in x)){if(Array.isArray(x.history))x.history.forEach(h=>{if(h&&h.prev&&h.prev.tracks&&h.prev.tracks.push)mapPush(h.prev.tracks.push)});mapPush(x.tracks.push);x.tracks.push.clean=0;x.tracks.push.miss=0}
+  const o=sanitize(x);if(!o)throw 0;const lost=(Array.isArray(x.history)?x.history.length:0)-o.history.length;if(confirm('Replace current progress with this backup? '+o.history.length+' sessions found'+(lost>0?', '+lost+' damaged or extra records will be discarded':'')+'.')){S=o;save();renderAll();toast('Backup restored'+(lost>0?' · '+lost+' damaged records discarded':''))}}catch(z){toast('Invalid Ascent backup')}el.value=''};r.readAsText(el.files[0])});
+function renderGuide(){$('v-guide').innerHTML=`<h2>Guide</h2>
+<details open><summary>How progression works</summary><p>A clean session means hitting the target on every set (for skill holds, on most sets, for example 3 of 5) at any effort short of Near max. Three clean full-volume sessions advance you. Near max still counts, but you must repeat once more before advancing. Reduced-volume days are skipped: they neither count nor reset your streak. A miss, pain or an unconfirmed form check resets it. Planche and L-sit stages also need a self-checked form pass. Reach at least 80% of the target on every set and it counts as "very close": no advance, but no penalty either. Below that, three misses in a row step you back one stage. Reduced-volume sessions (recovery, low readiness, back from a break) and pain never advance a stage, and reduced sessions never count as misses. After a baseline, your first two full sessions on each exercise are a placement check: a clear miss moves you back one stage immediately, and the new stage gets its own two-session check. Your last numbers and best set show on each exercise, so you can see progress before a stage-up.</p></details>
+<details><summary>Can't hit the target yet?</summary><p>That is what the earlier stages are for. Push starts with incline push-ups (12 reps) before the floor push-up (15). Log honest numbers: 10-9-8 beats 9-9-9 and shows in the completion chart even though the stage waits. When you can hit the target with clean form, you move up.</p></details>
+<details><summary>Timers & alerts</summary><p>Rest: tap 1:00 to 3:00 or let Ascent auto-start it after each set you enter. On time-based sets tap ▶ Timer: a get-ready countdown, then a count-up hold with a chime at your target. Keep holding past it if you can; STOP & SAVE writes your actual seconds into the set. Tune sound, ringtone, vibration and countdown in Log. Vibration is not available on iPhone. Alerts only ring while the app is open, so keep the screen on.</p></details>
+<details><summary>Readiness & recovery</summary><p>Readiness is a training-management tool, not a diagnosis. Low readiness trims a set from each exercise. A recovery session cuts volume by about 30% and never advances a stage. After a 14+ day break Ascent cuts volume; after 28+ days it cuts more, without dropping your stage.</p></details>
+<details><summary>Pain rule</summary><p>Joint pain is not a progression metric. Flag it, stop or modify the painful exercise, and never train through sharp or worsening pain. Persistent pain should be assessed by a qualified clinician.</p></details>
+<details><summary>Skill practice</summary><p>Handstand and planche need strength plus balance, body-line control and tissue tolerance. A single best hold is not mastery. Use clean, repeatable work and safe bail-outs.</p></details>
+<details><summary>Equipment</summary><p>Wall, a counter or table, a chair or low bench, a doorway pull-up bar. Never use an unstable chair for loaded support. Inspect equipment before each session.</p></details>
+<details><summary>Data & privacy</summary><p>Progress lives in this browser only. Export a backup before switching devices or clearing site data. No account needed.</p></details>`}
 
-/* ---------- GUIDE ---------- */
-$('v-guide').innerHTML=`<h2>How Ascent works</h2>
-<div class="card"><p><b>Direct route.</b> Every skill is trained through the strength it needs: hollow body and pike work feed handstand, straight-arm and core work feed planche. You only work the stage you are on.</p>
-<p><b>Why handstand first.</b> It is the most common skill, needs only a wall and short daily-style practice, and builds the wrist and shoulder tolerance planche demands. L-sit and pull-up run alongside as strength tracks. Planche unlocks when the base is proven.</p>
-<p><b>Advance rule.</b> Hit the target on every set for ${CLEAN} sessions in a row. Skill holds are hard on tendons, so the bar is stricter than a rep scheme.</p>
-<p><b>Step-back rule.</b> ${MISS} misses in a row drops you one stage to rebuild. It is a regression, not a failure.</p>
-<p><b>Schedule.</b> Sessions alternate Day A and Day B, 3 to 4 per week, with rest days between. Handstand and Planche run first while you are freshest; Push, Pull, Legs and Core follow. Expect roughly 35 to 45 minutes per session.</p>
-<p><b>Equipment.</b> A wall, a doorway pull-up bar, and a sturdy chair (split squats, L-sits).</p>
-<p><b>Realistic timing.</b> Freestanding handstand: 3 to 6 months. Full L-sit: 2 to 4 months. Strict pull-up: 2 to 4 months. Straddle planche: 1 to 2+ years — that's the realistic finish line for most people. Full planche is beyond this program.</p>
-<p><b>After a break.</b> 14 to 27 days off resets your clean-session counts; 28+ days also eases every track back one stage. Do the first session back at about 70%.</p>
-<p><b>Legs.</b> Day B includes legs, ending in the pistol squat. Strong legs and hips support balance and overall joint health.</p><p><b>Pain rule.</b> Tick the pain box on any exercise that hurts a joint. That session gives no progress credit, and you should cut volume and rest. Wrists and elbows take the load in handstand and planche, so never train through sharp pain.</p><p><b>Planche gate.</b> Common guidance asks for about a 10 to 15 second L-sit and solid push strength before tuck planche work, so Planche unlocks only after Pseudo Planche Push-up, Tuck L-sit 15s and the Chest-to-Wall Hold. Straddle planche is this program's finish line; full planche is a separate multi-year goal.</p></div>`;
+/* ================= NAV / SETUP ================= */
+function show(v){document.querySelectorAll('nav button,.view').forEach(x=>x.classList.remove('on'));document.querySelector(`nav button[data-v="${v}"]`).classList.add('on');$('v-'+v).classList.add('on');window.scrollTo(0,0)}
+document.querySelector('nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(b.dataset.v)});
+function renderAll(){renderToday();renderProgress();renderRoad();renderLog();renderGuide()}
+function openSetup(){
+ const A=[['Push-ups','max clean reps'],['Pull-ups','max clean reps'],['Dead hang','seconds'],['Hollow hold','seconds'],['Chest-to-wall hold','seconds'],['L-sit','seconds'],['Squat','max clean reps']];
+ $('assessment').innerHTML=A.map((x,i)=>`<div class="field"><label>${x[0]} · ${x[1]}</label><input type="number" inputmode="numeric" min="0" max="300" data-assess="${i}" placeholder="0"></div>`).join('');
+ $('setup').classList.add('on');document.body.classList.add('lock')}
+function closeSetup(){$('setup').classList.remove('on');document.body.classList.remove('lock')}
+function applyAssessment(v){
+ const[push,pull,hang,hollow,wall,lsit,squat]=v,T=S.tracks;
+ T.push.stage=push>=25?idx('push','Elevated Pike Push-up'):push>=15?idx('push','Pike Push-up'):push>=8?idx('push','Low Incline Push-up'):0;
+ T.pull.stage=pull>=8?4:pull>=5?3:pull>=1?2:hang>=30?1:0;
+ T.core.stage=lsit>=10?3:lsit>=5?2:hollow>=30?1:0;
+ T.handstand.stage=wall>=45?3:wall>=20?2:0;
+ T.legs.stage=squat>=30?1:0;
+ for(const k in T){T[k].clean=0;T[k].miss=0;T[k].prov=T[k].stage>0?2:0}
+ S.planche=false;maybePlanche();S.startedAt=new Date().toISOString();S.draft={};save();closeSetup();renderAll();toast('Baseline applied. Placement is provisional; your first sessions confirm it.')}
+$('saveSetup').addEventListener('click',()=>applyAssessment([...document.querySelectorAll('[data-assess]')].map(x=>Math.max(0,Number(x.value)||0))));
+$('skipSetup').addEventListener('click',()=>{S.startedAt=new Date().toISOString();save();closeSetup();toast('Beginner starting point selected')});
+$('setup').addEventListener('click',e=>{if(e.target.id==='setup')closeSetup()});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&$('setup').classList.contains('on'))closeSetup()});
 
-/* ---------- NAV / INIT ---------- */
-document.querySelector('nav').addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  document.querySelectorAll('nav button,.view').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on');$('v-'+b.dataset.v).classList.add('on');window.scrollTo(0,0);
-});
-function renderAll(){renderToday();renderRoad();renderLog()}
-checkLayoff();renderAll();
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+/* ================= SOUND ================= */
+const seq=(list,reps,gap)=>{const o=[];for(let r=0;r<reps;r++)for(const[f,t,d,ty]of list)o.push([f,r*gap+t,d,ty]);return o};
+const SND={
+ silent:[],
+ tick:[[880,0,.09,'sine']],
+ go:[[1320,0,.32,'sine']],
+ reach:[[1047,0,.3,'bell'],[1568,.16,.6,'bell']],
+ chime:seq([[784,0,.5,'bell'],[988,.2,.5,'bell'],[1319,.4,.9,'bell']],3,1.5),
+ bell:seq([[523,0,1.3,'bell'],[523,1,1.3,'bell']],2,2.2),
+ beep:seq([[1000,0,.16,'sq'],[1000,.26,.16,'sq'],[1000,.52,.16,'sq']],3,1.1),
+ alarm:seq([[1200,0,.18,'sq'],[900,.2,.18,'sq'],[1200,.4,.18,'sq'],[900,.6,.18,'sq']],4,1)};
+const URLS={};
+function mkWav(notes){
+ const sr=16000;let end=0;notes.forEach(n=>end=Math.max(end,n[1]+n[2]));
+ const N=Math.ceil((end+.1)*sr),b=new Float32Array(N),P=2*Math.PI;
+ for(const[f,t0,d,ty]of notes){const s0=Math.floor(t0*sr),n=Math.floor(d*sr);
+  for(let i=0;i<n&&s0+i<N;i++){const t=i/sr,at=Math.min(1,t/.004),env=at*Math.exp((ty==='sq'?-1.2:-4.5)*t/d);let v;
+   if(ty==='sq')v=Math.sin(P*f*t)>0?.4:-.4;else if(ty==='bell')v=Math.sin(P*f*t)+.5*Math.sin(P*f*2.76*t)+.25*Math.sin(P*f*5.4*t);else v=Math.sin(P*f*t);
+   b[s0+i]+=v*env}}
+ let pk=0;for(let i=0;i<N;i++)pk=Math.max(pk,Math.abs(b[i]));const g=pk?.9/pk:1;
+ const buf=new ArrayBuffer(44+N*2),dv=new DataView(buf),w=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i))};
+ w(0,'RIFF');dv.setUint32(4,36+N*2,true);w(8,'WAVEfmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);dv.setUint32(24,sr,true);dv.setUint32(28,sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);w(36,'data');dv.setUint32(40,N*2,true);
+ for(let i=0;i<N;i++)dv.setInt16(44+i*2,Math.max(-1,Math.min(1,b[i]*g))*32767,true);
+ return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}))}
+const sndUrl=n=>URLS[n]||(URLS[n]=mkWav(SND[n]));
+/* Two <audio> elements (not WebAudio) so alerts still play with the iPhone silent switch on. */
+let AU=null;
+try{AU={tick:new Audio(),ring:new Audio()}}catch(e){}
+let unlocked=false;
+function unlock(){if(unlocked||!AU)return;unlocked=true;for(const k in AU){try{AU[k].src=sndUrl('silent');AU[k].volume=0;const p=AU[k].play();if(p&&p.then)p.then(()=>AU[k].pause()).catch(()=>{unlocked=false})}catch(e){unlocked=false}}}
+['pointerdown','touchend','click','keydown'].forEach(ev=>addEventListener(ev,unlock,{passive:true}));
+function play(kind){
+ if(!S.settings.sound||!AU)return;
+ const a=kind==='ring'?AU.ring:AU.tick,name=kind==='ring'?S.settings.tone:kind;
+ try{a.pause();a.src=sndUrl(name);a.volume=VOL[S.settings.vol]||.7;a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
+function stopAlarm(){if(!AU)return;try{AU.ring.pause();AU.ring.currentTime=0}catch(e){}}
+const buzz=p=>{if(S.settings.vibrate&&navigator.vibrate)try{navigator.vibrate(p)}catch(e){}};
+async function notify(title,body){
+ if(!('Notification'in window)||Notification.permission!=='granted')return;
+ try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration(),o={body,icon:'icon-192.png',badge:'icon-192.png',tag:'ascent-timer',renotify:true,vibrate:[300,120,300]};if(reg)reg.showNotification(title,o);else new Notification(title,o)}catch(e){}}
+let wl=null;
+async function awake(on){if(!('wakeLock'in navigator))return;try{if(on&&S.settings.awake&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null})}else if(!on&&wl){const w=wl;wl=null;await w.release()}}catch(e){wl=null}}
+
+/* ================= TIMER ENGINE ================= */
+let TM={mode:null},worker=null,ivl=null,hideT=null;
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+function run(){halt();try{worker=new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},250)'],{type:'text/javascript'})));worker.onmessage=step}catch(e){worker=null;ivl=setInterval(step,250)}}
+function halt(){if(worker){worker.terminate();worker=null}if(ivl){clearInterval(ivl);ivl=null}}
+function ui(){const dock=TM.mode==='rest'||TM.mode==='done',hold=TM.mode==='ready'||TM.mode==='hold';$('dock').hidden=!dock;$('hold').hidden=!hold;document.body.classList.toggle('tm',dock||hold);document.body.classList.toggle('lock',hold||$('setup').classList.contains('on'))}
+function endTimer(){clearTimeout(hideT);stopAlarm();halt();TM={mode:null};try{localStorage.removeItem(RESTKEY)}catch(e){}ui();awake(false)}
+function startRest(sec){
+ unlock();clearTimeout(hideT);stopAlarm();
+ TM={mode:'rest',dur:sec,end:Date.now()+sec*1000,lastSec:null};
+ try{localStorage.setItem(RESTKEY,String(TM.end))}catch(e){}
+ awake(true);run();step()}
+function startHold(k,i){
+ unlock();clearTimeout(hideT);stopAlarm();
+ const st=TRACKS[k].stages[S.tracks[k].stage],rdy=readyFor(k);
+ TM={mode:rdy>0?'ready':'hold',k,i,name:st[0],target:st[2],end:Date.now()+rdy*1000,start:Date.now(),reached:false,lastSec:null};
+ try{localStorage.removeItem(RESTKEY)}catch(e){}
+ awake(true);run();if(!rdy)beginHold();step()}
+function beginHold(){TM.mode='hold';TM.start=Date.now();TM.reached=false;play('go');buzz(200)}
+function finishRest(late){
+ TM.mode='done';halt();try{localStorage.removeItem(RESTKEY)}catch(e){}
+ if(late<30000){play('ring');buzz([300,120,300,120,500])}
+ if(document.hidden)notify('Rest over','Next set. Time to go.');
+ awake(false);
+ $('dock').classList.add('go');$('dkLabel').textContent='REST OVER';$('dkTime').textContent='GO';$('dkBar').style.width='100%';$('dkAdj').hidden=true;$('dkSkip').textContent='Dismiss';
+ ui();clearTimeout(hideT);hideT=setTimeout(endTimer,12000)}
+function step(){
+ const now=Date.now();
+ if(TM.mode==='rest'||TM.mode==='ready'){
+  const left=Math.ceil((TM.end-now)/1000);
+  if(left>0){
+   if(left<=3&&left!==TM.lastSec&&S.settings.count)play('tick');
+   TM.lastSec=left;
+   if(TM.mode==='rest'){$('dock').classList.remove('go');$('dkLabel').textContent='REST';$('dkTime').textContent=fmt(left);$('dkBar').style.width=Math.min(100,100-left/TM.dur*100)+'%';$('dkAdj').hidden=false;$('dkSkip').textContent='Skip'}
+   else{$('hold').classList.remove('ok');$('hPhase').textContent='GET READY';$('hTime').textContent=left;$('hSub').textContent=TM.name+' · set '+(TM.i+1);$('hBar').style.width='0';$('hStop').textContent='START NOW';$('hCancel').hidden=false}
+   ui()}
+  else if(TM.mode==='rest')finishRest(now-TM.end);
+  else{beginHold();step()}}
+ else if(TM.mode==='hold'){
+  const el=Math.floor((now-TM.start)/1000);
+  if(!TM.reached&&el>=TM.target){TM.reached=true;play('reach');buzz([250,100,250]);if(document.hidden)notify('Target reached',TM.name+' · '+TM.target+'s')}
+  $('hold').classList.toggle('ok',TM.reached);$('hPhase').textContent=TM.reached?'TARGET REACHED':'HOLD';$('hTime').textContent=el;
+  $('hSub').textContent=TM.reached?(el>TM.target?'+'+(el-TM.target)+'s over target':'Target '+TM.target+'s'):TM.name+' · target '+TM.target+'s';
+  $('hBar').style.width=Math.min(100,el/TM.target*100)+'%';$('hStop').textContent='STOP & SAVE';$('hCancel').hidden=false;ui()}}
+function stopHold(){
+ if(TM.mode==='ready'){beginHold();step();return}
+ if(TM.mode!=='hold')return;
+ const k=TM.k,i=TM.i,el=Math.min(600,Math.floor((Date.now()-TM.start)/1000));
+ endTimer();
+ if(el<1){toast('Too short. Nothing saved.');return}
+ S.draft[k+'_'+i]=String(el);save();
+ const inp=document.querySelector(`input[data-k="${k}"][data-i="${i}"]`);if(inp){inp.value=String(el);inp.dataset.was=String(el)}
+ toast('Set '+(i+1)+': '+el+'s saved');
+ if(S.settings.auto&&!isFinalSet(k,i))startRest(S.settings.rest)}
+$('hStop').addEventListener('click',stopHold);
+$('hCancel').addEventListener('click',()=>{endTimer();toast('Timer cancelled')});
+$('dock').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.tm==='skip')endTimer();
+ else if(TM.mode==='rest'){const d=+b.dataset.tm;TM.end+=d*1000;TM.dur=Math.max(1,TM.dur+d);try{localStorage.setItem(RESTKEY,String(TM.end))}catch(x){}step()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&(TM.mode==='rest'||TM.mode==='ready'||TM.mode==='hold')){awake(true);step()}});
+function resumeRest(){try{const end=+localStorage.getItem(RESTKEY);if(end>Date.now()){TM={mode:'rest',dur:Math.ceil((end-Date.now())/1000),end,lastSec:null};run();step()}else localStorage.removeItem(RESTKEY)}catch(e){}}
+
+/* ================= BOOT ================= */
+renderAll();
+if(!S.sessions&&!S.startedAt)setTimeout(openSetup,350);
+resumeRest();
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
-</body>
-</html>
+</body></html>
